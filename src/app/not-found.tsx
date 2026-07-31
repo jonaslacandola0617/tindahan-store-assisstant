@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function NotFound() { return <main className="standalone"><div className="card card-pad" style={{ textAlign: "center" }}><h1>Page not found</h1><p className="text-muted" style={{ margin: "var(--space-3) 0 var(--space-5)" }}>That page is not part of this store workspace.</p><Link className="btn btn-primary" href="/dashboard">Go to dashboard</Link></div></main>; }

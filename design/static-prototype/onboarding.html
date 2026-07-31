@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set up your store · Tindahan</title>
+<meta name="description" content="Tindahan — a store operating assistant for small neighborhood stores.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><rect width=%2224%22 height=%2224%22 rx=%226%22 fill=%22%231B4D3E%22/><path d=%22M4.5 9 5.5 5h13l1 4%22 stroke=%22white%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/><path d=%22M5.5 9v9.5h13V9%22 stroke=%22white%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/layouts.css">
+<link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="onboarding">
+<a class="skip-link" href="#main"><span class="i18n" data-en="Skip to content" data-fil="Lumaktaw papunta sa nilalaman">Skip to content</span></a>
+<svg style="display:none">
+<defs>
+    <g style="display:none" id="ico-shell" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></g>
+  </defs>
+
+  <symbol id="icon-home" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9"/></g></symbol>
+
+  <symbol id="icon-package" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v9l9 5 9-5V8"/><path d="M12 13v9"/><path d="M16.5 5.5 7.5 10.5"/></g></symbol>
+
+  <symbol id="icon-receipt" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v18l-2.5-1.8L13 20l-1.5-1.8L10 20l-2.5-1.8L6 20V2Z"/><path d="M9 7.5h6"/><path d="M9 11h6"/><path d="M9 14.5h4"/></g></symbol>
+
+  <symbol id="icon-bag" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8h11l-1 12h-9l-1-12Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></g></symbol>
+
+  <symbol id="icon-bar-chart" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11"/><path d="M12 20V4"/><path d="M20 20v-6"/><path d="M2 20h20"/></g></symbol>
+
+  <symbol id="icon-sliders" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10"/><circle cx="17" cy="6" r="2"/><path d="M20 12H10"/><circle cx="7" cy="12" r="2"/><path d="M4 18h10"/><circle cx="17" cy="18" r="2"/></g></symbol>
+
+  <symbol id="icon-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></g></symbol>
+
+  <symbol id="icon-bell" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 0 0 4 0"/></g></symbol>
+
+  <symbol id="icon-menu" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></g></symbol>
+
+  <symbol id="icon-chevron-right" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m9 6 6 6-6 6"/></symbol>
+  <symbol id="icon-chevron-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="icon-chevron-left" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m15 6-6 6 6 6"/></symbol>
+  <symbol id="icon-chevrons-updown" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 9 4-4 4 4"/><path d="m8 15 4 4 4-4"/></g></symbol>
+
+  <symbol id="icon-plus" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></g></symbol>
+  <symbol id="icon-minus" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/></symbol>
+  <symbol id="icon-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5 10 17.5 20 6.5"/></symbol>
+  <symbol id="icon-check-circle" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></g></symbol>
+  <symbol id="icon-alert-triangle" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 9.5v4.5"/><path d="M12 17h.01"/></g></symbol>
+  <symbol id="icon-x" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></g></symbol>
+  <symbol id="icon-x-circle" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6"/><path d="m15 9-6 6"/></g></symbol>
+
+  <symbol id="icon-camera" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3.2l1.8-2.5h6l1.8 2.5H20v11H4V8Z"/><circle cx="12" cy="13.2" r="3.4"/></g></symbol>
+  <symbol id="icon-upload" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15.5V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16"/></g></symbol>
+  <symbol id="icon-edit" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18.5 9.5l-4-4L4 16v4Z"/><path d="m14 6 4 4"/></g></symbol>
+  <symbol id="icon-trash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4.5h6V7"/><path d="M6.5 7 7.3 20h9.4L17.5 7"/></g></symbol>
+
+  <symbol id="icon-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.2"/><path d="M12 19.8V22"/><path d="m4.9 4.9 1.5 1.5"/><path d="m17.6 17.6 1.5 1.5"/><path d="M2 12h2.2"/><path d="M19.8 12H22"/><path d="m4.9 19.1 1.5-1.5"/><path d="m17.6 6.4 1.5-1.5"/></g></symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/></symbol>
+  <symbol id="icon-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15.5 15.5 0 0 1 0 18"/><path d="M12 3a15.5 15.5 0 0 0 0 18"/></g></symbol>
+  <symbol id="icon-user" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6.2 8-6.2s8 2.2 8 6.2"/></g></symbol>
+  <symbol id="icon-arrow-left" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></g></symbol>
+  <symbol id="icon-filter" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M7 12h10"/><path d="M10 19h4"/></g></symbol>
+  <symbol id="icon-more" viewBox="0 0 24 24"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></symbol>
+  <symbol id="icon-truck" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h10v9H3z"/><path d="M13 10h4l3.5 3.2V16H13"/><circle cx="7.5" cy="18" r="1.7"/><circle cx="17" cy="18" r="1.7"/></g></symbol>
+  <symbol id="icon-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.3l3.2 1.9"/></g></symbol>
+  <symbol id="icon-trending-up" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 16 5.5-6.5 4 3.2L20 5.5"/><path d="M14.5 5.5H20v5.5"/></g></symbol>
+  <symbol id="icon-trending-down" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 8 5.5 6.5 4-3.2L20 18.5"/><path d="M14.5 18.5H20V13"/></g></symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.8h.01"/><path d="M11 11.3h1.3v5.2"/><path d="M10.7 16.5h2.8"/></g></symbol>
+  <symbol id="icon-refresh" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 0 1 13.2-4.8L20 9.5"/><path d="M20 4.5v5h-5"/><path d="M19.5 12a7.5 7.5 0 0 1-13.2 4.8L4 14.5"/><path d="M4 19.5v-5h5"/></g></symbol>
+  <symbol id="icon-wifi-off" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8.8a16 16 0 0 1 4.6-2.8"/><path d="M21.5 8.8a16 16 0 0 0-7.3-3.9"/><path d="M6.3 12.9a10 10 0 0 1 3-1.8"/><path d="M17.7 12.9a10 10 0 0 0-3.2-1.9"/><path d="M9.3 17a5 5 0 0 1 5.4 0"/><circle cx="12" cy="19.6" r="1" fill="currentColor" stroke="none"/><path d="M2 2l20 20"/></g></symbol>
+  <symbol id="icon-calendar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18"/><path d="M8 3v4"/><path d="M16 3v4"/></g></symbol>
+  <symbol id="icon-log-out" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H9"/><path d="m16 16 4-4-4-4"/><path d="M20 12H9"/></g></symbol>
+  <symbol id="icon-image" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15.5-5-5L5 21"/></g></symbol>
+  <symbol id="icon-store" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9 4.5 4h15l1 5"/><path d="M4.5 9v10.5h15V9"/><path d="M9.5 19.5v-6h5v6"/></g></symbol>
+  <symbol id="icon-loader" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="34 200"/></symbol>
+  <symbol id="icon-box-open" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 5l9 4.5"/><path d="M3 9.5v9L12 22l9-3.5v-9"/><path d="M12 5v17"/><path d="m3 9.5 9-3 9 3"/></g></symbol>
+  <symbol id="icon-tag" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.6 3.5H20v7.4L11.2 20 3.5 12.3 12.6 3.5Z"/><circle cx="16.2" cy="7.8" r="1.4" fill="currentColor" stroke="none"/></g></symbol>
+
+</svg>
+<div class="standalone">
+<div class="standalone-card">
+  <div class="card card-pad" style="box-shadow:var(--shadow-overlay)">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-6)">
+      <span class="brand-mark">
+        <span class="brand-glyph"><svg class="icon" aria-hidden="true"><use href="#icon-store"></use></svg></span>
+        <span class="brand-word">Tindahan</span>
+      </span>
+      <div class="segmented" data-lang-toggle role="group" aria-label="Language">
+        <button type="button" data-lang-option="en" class="active">EN</button>
+        <button type="button" data-lang-option="fil">FIL</button>
+      </div>
+    </div>
+
+    <div class="step-indicator" style="margin-bottom:var(--space-6)" aria-hidden="true">
+      <span class="step-dot active" data-dot="1"></span>
+      <span class="step-dot" data-dot="2"></span>
+      <span class="step-dot" data-dot="3"></span>
+    </div>
+
+    <!-- Step 1 -->
+    <section data-ob-step="1">
+      <h1 style="margin-bottom:var(--space-2)"><span class="i18n" data-en="Tell us about your store" data-fil="Ikwento ang tungkol sa iyong tindahan">Tell us about your store</span></h1>
+      <p class="text-muted" style="margin-bottom:var(--space-6)"><span class="i18n" data-en="This helps Tindahan feel like it was made for your store." data-fil="Makakatulong ito para maangkop ang Tindahan sa iyong tindahan.">This helps Tindahan feel like it was made for your store.</span></p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-5)">
+        <div class="field">
+          <label class="field-label" for="storeName"><span class="i18n" data-en="Store name" data-fil="Pangalan ng tindahan">Store name</span></label>
+          <input class="input" id="storeName" type="text" value="Aling Rosa's Store">
+        </div>
+        <div class="field">
+          <label class="field-label" for="ownerName"><span class="i18n" data-en="Your name" data-fil="Iyong pangalan">Your name</span></label>
+          <input class="input" id="ownerName" type="text" value="Rosa Santos">
+        </div>
+        <div class="field">
+          <label class="field-label" for="storeType"><span class="i18n" data-en="What kind of store is it?" data-fil="Anong uri ng tindahan?">What kind of store is it?</span></label>
+          <div class="select-wrap">
+            <select class="select" id="storeType">
+              <option selected>Sari-sari store</option>
+              <option>Mini-mart</option>
+              <option>Convenience store</option>
+              <option>Other small store</option>
+            </select>
+            <svg class="icon" aria-hidden="true"><use href="#icon-chevron-down"></use></svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 2 -->
+    <section data-ob-step="2" style="display:none">
+      <h1 style="margin-bottom:var(--space-2)"><span class="i18n" data-en="A few preferences" data-fil="Ilang kagustuhan">A few preferences</span></h1>
+      <p class="text-muted" style="margin-bottom:var(--space-6)"><span class="i18n" data-en="You can always change these later in Settings." data-fil="Puwede mo pa rin itong baguhin sa Settings.">You can always change these later in Settings.</span></p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+        <div class="row-item" style="min-height:auto">
+          <span class="row-main">
+            <span class="row-title"><span class="i18n" data-en="Notify me about low stock" data-fil="Ipaalam sa akin kung paubos na ang paninda">Notify me about low stock</span></span>
+            <span class="row-meta"><span class="i18n" data-en="Get a reminder before you run out" data-fil="Bigyan ng paalala bago maubos">Get a reminder before you run out</span></span>
+          </span>
+          <label class="switch"><input type="checkbox" checked aria-label="Notify me about low stock"><span class="switch-track"></span><span class="switch-thumb"></span></label>
+        </div>
+        <div class="row-item" style="min-height:auto">
+          <span class="row-main">
+            <span class="row-title"><span class="i18n" data-en="Daily summary" data-fil="Pang-araw-araw na buod">Daily summary</span></span>
+            <span class="row-meta"><span class="i18n" data-en="A short recap every evening" data-fil="Maikling buod tuwing gabi">A short recap every evening</span></span>
+          </span>
+          <label class="switch"><input type="checkbox" checked aria-label="Daily summary"><span class="switch-track"></span><span class="switch-thumb"></span></label>
+        </div>
+        <div class="banner banner-info">
+          <svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg>
+          <span><span class="i18n" data-en="Amounts are shown in Philippine Peso (₱)." data-fil="Ipinapakita ang halaga sa Philippine Peso (₱).">Amounts are shown in Philippine Peso (₱).</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 3 -->
+    <section data-ob-step="3" style="display:none;text-align:center">
+      <div class="empty-icon" style="margin:0 auto var(--space-4)"><svg class="icon icon-lg" aria-hidden="true"><use href="#icon-check-circle"></use></svg></div>
+      <h1 style="margin-bottom:var(--space-2)"><span class="i18n" data-en="You're all set" data-fil="Handa ka na">You're all set</span></h1>
+      <p class="text-muted" style="margin-bottom:var(--space-6)"><span class="i18n" data-en="Here's what to do first." data-fil="Ito ang unang dapat gawin.">Here's what to do first.</span></p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-3);text-align:left;margin-bottom:var(--space-6)">
+        <div class="row-item" style="min-height:auto">
+          <span class="attn-icon info"><svg class="icon" aria-hidden="true"><use href="#icon-camera"></use></svg></span>
+          <span class="row-main"><span class="row-title"><span class="i18n" data-en="Scan your first receipt" data-fil="I-scan ang una mong resibo">Scan your first receipt</span></span></span>
+        </div>
+        <div class="row-item" style="min-height:auto">
+          <span class="attn-icon info"><svg class="icon" aria-hidden="true"><use href="#icon-package"></use></svg></span>
+          <span class="row-main"><span class="row-title"><span class="i18n" data-en="Look through your inventory" data-fil="Tingnan ang iyong imbentaryo">Look through your inventory</span></span></span>
+        </div>
+        <div class="row-item" style="min-height:auto">
+          <span class="attn-icon info"><svg class="icon" aria-hidden="true"><use href="#icon-bag"></use></svg></span>
+          <span class="row-main"><span class="row-title"><span class="i18n" data-en="Record your first sale" data-fil="Itala ang unang benta">Record your first sale</span></span></span>
+        </div>
+      </div>
+    </section>
+
+    <div style="display:flex;gap:var(--space-3);margin-top:var(--space-2)">
+      <button class="btn btn-secondary" data-ob-back style="display:none"><span class="i18n" data-en="Back" data-fil="Bumalik">Back</span></button>
+      <button class="btn btn-primary btn-block" data-ob-next><span class="i18n" data-en="Continue" data-fil="Magpatuloy">Continue</span></button>
+      <a class="btn btn-primary btn-block" href="dashboard.html" data-ob-finish style="display:none"><span class="i18n" data-en="Go to my dashboard" data-fil="Pumunta sa dashboard">Go to my dashboard</span></a>
+    </div>
+  </div>
+</div>
+</div><div class="toast-region" role="status" aria-live="polite"></div>
+<script>
+(function(){
+  var step = 1;
+  var sections = document.querySelectorAll('[data-ob-step]');
+  var dots = document.querySelectorAll('[data-dot]');
+  var next = document.querySelector('[data-ob-next]');
+  var back = document.querySelector('[data-ob-back]');
+  var finish = document.querySelector('[data-ob-finish]');
+  function render(){
+    sections.forEach(function(s){ s.style.display = (parseInt(s.getAttribute('data-ob-step'),10) === step) ? '' : 'none'; });
+    dots.forEach(function(d){
+      var n = parseInt(d.getAttribute('data-dot'),10);
+      d.classList.toggle('active', n === step);
+      d.classList.toggle('done', n < step);
+    });
+    back.style.display = step > 1 ? '' : 'none';
+    next.style.display = step < 3 ? '' : 'none';
+    finish.style.display = step === 3 ? '' : 'none';
+  }
+  next.addEventListener('click', function(){ if(step<3){ step++; render(); } });
+  back.addEventListener('click', function(){ if(step>1){ step--; render(); } });
+  render();
+})();
+</script>
+<script src="js/app.js"></script>
+<script src="js/navigation.js"></script>
+<script src="js/mock-data.js"></script>
+<script src="js/interactions.js"></script>
+</body>
+</html>

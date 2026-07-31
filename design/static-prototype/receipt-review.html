@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Review receipt · Tindahan</title>
+<meta name="description" content="Tindahan — a store operating assistant for small neighborhood stores.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><rect width=%2224%22 height=%2224%22 rx=%226%22 fill=%22%231B4D3E%22/><path d=%22M4.5 9 5.5 5h13l1 4%22 stroke=%22white%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/><path d=%22M5.5 9v9.5h13V9%22 stroke=%22white%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/layouts.css">
+<link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="receipts">
+<a class="skip-link" href="#main"><span class="i18n" data-en="Skip to content" data-fil="Lumaktaw papunta sa nilalaman">Skip to content</span></a>
+<svg style="display:none">
+<defs>
+    <g style="display:none" id="ico-shell" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></g>
+  </defs>
+
+  <symbol id="icon-home" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9"/></g></symbol>
+
+  <symbol id="icon-package" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v9l9 5 9-5V8"/><path d="M12 13v9"/><path d="M16.5 5.5 7.5 10.5"/></g></symbol>
+
+  <symbol id="icon-receipt" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v18l-2.5-1.8L13 20l-1.5-1.8L10 20l-2.5-1.8L6 20V2Z"/><path d="M9 7.5h6"/><path d="M9 11h6"/><path d="M9 14.5h4"/></g></symbol>
+
+  <symbol id="icon-bag" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8h11l-1 12h-9l-1-12Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></g></symbol>
+
+  <symbol id="icon-bar-chart" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11"/><path d="M12 20V4"/><path d="M20 20v-6"/><path d="M2 20h20"/></g></symbol>
+
+  <symbol id="icon-sliders" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10"/><circle cx="17" cy="6" r="2"/><path d="M20 12H10"/><circle cx="7" cy="12" r="2"/><path d="M4 18h10"/><circle cx="17" cy="18" r="2"/></g></symbol>
+
+  <symbol id="icon-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></g></symbol>
+
+  <symbol id="icon-bell" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 0 0 4 0"/></g></symbol>
+
+  <symbol id="icon-menu" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></g></symbol>
+
+  <symbol id="icon-chevron-right" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m9 6 6 6-6 6"/></symbol>
+  <symbol id="icon-chevron-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="icon-chevron-left" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m15 6-6 6 6 6"/></symbol>
+  <symbol id="icon-chevrons-updown" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 9 4-4 4 4"/><path d="m8 15 4 4 4-4"/></g></symbol>
+
+  <symbol id="icon-plus" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></g></symbol>
+  <symbol id="icon-minus" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/></symbol>
+  <symbol id="icon-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5 10 17.5 20 6.5"/></symbol>
+  <symbol id="icon-check-circle" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></g></symbol>
+  <symbol id="icon-alert-triangle" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 9.5v4.5"/><path d="M12 17h.01"/></g></symbol>
+  <symbol id="icon-x" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></g></symbol>
+  <symbol id="icon-x-circle" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6"/><path d="m15 9-6 6"/></g></symbol>
+
+  <symbol id="icon-camera" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3.2l1.8-2.5h6l1.8 2.5H20v11H4V8Z"/><circle cx="12" cy="13.2" r="3.4"/></g></symbol>
+  <symbol id="icon-upload" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15.5V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16"/></g></symbol>
+  <symbol id="icon-edit" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18.5 9.5l-4-4L4 16v4Z"/><path d="m14 6 4 4"/></g></symbol>
+  <symbol id="icon-trash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4.5h6V7"/><path d="M6.5 7 7.3 20h9.4L17.5 7"/></g></symbol>
+
+  <symbol id="icon-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.2"/><path d="M12 19.8V22"/><path d="m4.9 4.9 1.5 1.5"/><path d="m17.6 17.6 1.5 1.5"/><path d="M2 12h2.2"/><path d="M19.8 12H22"/><path d="m4.9 19.1 1.5-1.5"/><path d="m17.6 6.4 1.5-1.5"/></g></symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/></symbol>
+  <symbol id="icon-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15.5 15.5 0 0 1 0 18"/><path d="M12 3a15.5 15.5 0 0 0 0 18"/></g></symbol>
+  <symbol id="icon-user" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6.2 8-6.2s8 2.2 8 6.2"/></g></symbol>
+  <symbol id="icon-arrow-left" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></g></symbol>
+  <symbol id="icon-filter" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M7 12h10"/><path d="M10 19h4"/></g></symbol>
+  <symbol id="icon-more" viewBox="0 0 24 24"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></symbol>
+  <symbol id="icon-truck" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h10v9H3z"/><path d="M13 10h4l3.5 3.2V16H13"/><circle cx="7.5" cy="18" r="1.7"/><circle cx="17" cy="18" r="1.7"/></g></symbol>
+  <symbol id="icon-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.3l3.2 1.9"/></g></symbol>
+  <symbol id="icon-trending-up" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 16 5.5-6.5 4 3.2L20 5.5"/><path d="M14.5 5.5H20v5.5"/></g></symbol>
+  <symbol id="icon-trending-down" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 8 5.5 6.5 4-3.2L20 18.5"/><path d="M14.5 18.5H20V13"/></g></symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.8h.01"/><path d="M11 11.3h1.3v5.2"/><path d="M10.7 16.5h2.8"/></g></symbol>
+  <symbol id="icon-refresh" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 0 1 13.2-4.8L20 9.5"/><path d="M20 4.5v5h-5"/><path d="M19.5 12a7.5 7.5 0 0 1-13.2 4.8L4 14.5"/><path d="M4 19.5v-5h5"/></g></symbol>
+  <symbol id="icon-wifi-off" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8.8a16 16 0 0 1 4.6-2.8"/><path d="M21.5 8.8a16 16 0 0 0-7.3-3.9"/><path d="M6.3 12.9a10 10 0 0 1 3-1.8"/><path d="M17.7 12.9a10 10 0 0 0-3.2-1.9"/><path d="M9.3 17a5 5 0 0 1 5.4 0"/><circle cx="12" cy="19.6" r="1" fill="currentColor" stroke="none"/><path d="M2 2l20 20"/></g></symbol>
+  <symbol id="icon-calendar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18"/><path d="M8 3v4"/><path d="M16 3v4"/></g></symbol>
+  <symbol id="icon-log-out" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H9"/><path d="m16 16 4-4-4-4"/><path d="M20 12H9"/></g></symbol>
+  <symbol id="icon-image" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15.5-5-5L5 21"/></g></symbol>
+  <symbol id="icon-store" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9 4.5 4h15l1 5"/><path d="M4.5 9v10.5h15V9"/><path d="M9.5 19.5v-6h5v6"/></g></symbol>
+  <symbol id="icon-loader" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="34 200"/></symbol>
+  <symbol id="icon-box-open" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 5l9 4.5"/><path d="M3 9.5v9L12 22l9-3.5v-9"/><path d="M12 5v17"/><path d="m3 9.5 9-3 9 3"/></g></symbol>
+  <symbol id="icon-tag" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.6 3.5H20v7.4L11.2 20 3.5 12.3 12.6 3.5Z"/><circle cx="16.2" cy="7.8" r="1.4" fill="currentColor" stroke="none"/></g></symbol>
+
+</svg>
+<div class="app-shell"><aside class="sidebar">
+  <div class="sidebar-header">
+    <a class="brand-mark" href="dashboard.html" aria-label="Tindahan home">
+      <span class="brand-glyph"><svg class="icon" aria-hidden="true"><use href="#icon-store"></use></svg></span>
+      <span class="brand-word">Tindahan</span>
+    </a>
+    <button class="sidebar-collapse-btn" data-sidebar-toggle aria-label="Collapse sidebar">
+      <svg class="icon" aria-hidden="true"><use href="#icon-chevrons-updown"></use></svg>
+    </button>
+  </div>
+  <nav class="sidebar-nav" aria-label="Primary">
+    <a class="nav-item" href="dashboard.html" data-nav="dashboard">
+          <svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg>
+          <span class="i18n nav-label" data-en="Dashboard" data-fil="Buod">Dashboard</span>
+          
+        </a>
+<a class="nav-item" href="inventory.html" data-nav="inventory">
+          <svg class="icon" aria-hidden="true"><use href="#icon-package"></use></svg>
+          <span class="i18n nav-label" data-en="Inventory" data-fil="Imbentaryo">Inventory</span>
+          <span class="badge badge-warning nav-badge">6</span>
+        </a>
+<a class="nav-item" href="sales.html" data-nav="sales">
+          <svg class="icon" aria-hidden="true"><use href="#icon-bag"></use></svg>
+          <span class="i18n nav-label" data-en="Sales" data-fil="Benta">Sales</span>
+          
+        </a>
+<a class="nav-item" href="receipts.html" data-nav="receipts">
+          <svg class="icon" aria-hidden="true"><use href="#icon-receipt"></use></svg>
+          <span class="i18n nav-label" data-en="Receipts" data-fil="Resibo">Receipts</span>
+          <span class="badge badge-info nav-badge">1</span>
+        </a>
+<a class="nav-item" href="reports.html" data-nav="reports">
+          <svg class="icon" aria-hidden="true"><use href="#icon-bar-chart"></use></svg>
+          <span class="i18n nav-label" data-en="Reports" data-fil="Ulat">Reports</span>
+          
+        </a>
+<a class="nav-item" href="settings.html" data-nav="settings">
+          <svg class="icon" aria-hidden="true"><use href="#icon-sliders"></use></svg>
+          <span class="i18n nav-label" data-en="Settings" data-fil="Mga Setting">Settings</span>
+          
+        </a>
+  </nav>
+  <button class="sidebar-expand-btn" data-sidebar-toggle aria-label="Expand sidebar">
+    <svg class="icon" aria-hidden="true"><use href="#icon-menu"></use></svg>
+  </button>
+  <div class="sidebar-footer">
+    <button class="sidebar-store" data-popover-toggle="store-popover" aria-haspopup="true">
+      <span class="avatar">RS</span>
+      <span style="min-width:0">
+        <span class="sidebar-store-name" style="display:block">Aling Rosa's Store</span>
+        <span class="sidebar-store-role">Owner</span>
+      </span>
+    </button>
+  </div>
+</aside><div class="main-col"><header class="topbar" has-back>
+    <div class="topbar-left">
+      <a class="mobile-back-btn" href="receipts.html" aria-label="Back"><svg class="icon" aria-hidden="true"><use href="#icon-arrow-left"></use></svg></a><h1 class="topbar-title"><span class="i18n" data-en="Review receipt" data-fil="Suriin ang resibo">Review receipt</span></h1>
+    </div>
+    
+    <div class="topbar-right">
+      <div class="segmented" data-lang-toggle role="group" aria-label="Language">
+        <button type="button" data-lang-option="en" class="active">EN</button>
+        <button type="button" data-lang-option="fil">FIL</button>
+      </div>
+      <button class="btn-icon btn-ghost" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">
+        <svg class="icon" aria-hidden="true"><use href="#icon-moon"></use></svg>
+      </button>
+      <a class="btn-icon btn-ghost" href="notifications.html" aria-label="Notifications" style="position:relative">
+        <svg class="icon" aria-hidden="true"><use href="#icon-bell"></use></svg>
+        <span class="badge badge-danger" style="position:absolute;top:4px;right:4px;padding:1px 5px;font-size:10px">3</span>
+      </a>
+    </div>
+  </header><main class="content" id="main">
+<a class="back-link" href="receipts.html"><svg class="icon icon-sm" aria-hidden="true"><use href="#icon-arrow-left"></use></svg> <span class="i18n" data-en="Back to receipts" data-fil="Bumalik sa resibo">Back to receipts</span></a>
+
+<div class="content-header" style="margin-top:var(--space-3)">
+  <h1><span class="i18n" data-en="Review this receipt" data-fil="Suriin ang resibong ito">Review this receipt</span></h1>
+  <p class="text-muted">Home Table Foods · <span class="i18n" data-en="Yesterday, 4:41 PM" data-fil="Kahapon, 4:41 PM">Yesterday, 4:41 PM</span></p>
+</div>
+
+<div class="review-summary-band" style="margin-bottom:var(--space-6)">
+  <div>
+    <p class="font-semibold" data-review-progress aria-live="polite">6 of 12 items ready</p>
+    <p class="text-sm text-muted"><span class="i18n" data-en="Check each item below before confirming." data-fil="Suriin ang bawat item sa ibaba bago kumpirmahin.">Check each item below before confirming.</span></p>
+  </div>
+  <div class="progress-track" style="width:160px">
+    <div class="progress-fill" data-review-progress-fill style="width:50%"></div>
+  </div>
+</div>
+
+<div class="receipt-split" data-review-root>
+  <div class="receipt-preview">
+    
+<div class="receipt-photo-frame" style="padding:var(--space-5);font-family:'DM Sans',monospace">
+  <div style="text-align:center;margin-bottom:var(--space-3)">
+    <p style="font-weight:600;letter-spacing:0.02em">HOME TABLE FOODS</p>
+    <p class="text-xs text-muted">Sto. Rosario, San Jose del Monte</p>
+    <p class="text-xs text-muted">Jul 22, 2026 · 4:41 PM</p>
+  </div>
+  <hr class="divider" style="margin:var(--space-3) 0;border-top:1px dashed var(--color-border-strong)">
+  <div class="text-xs" style="display:flex;flex-direction:column;gap:4px;color:var(--color-text-muted)">
+    <div style="display:flex;justify-content:space-between"><span>TOYO 200ML x24</span><span>432.00</span></div>
+    <div style="display:flex;justify-content:space-between"><span>SUKA 200ML x24</span><span>384.00</span></div>
+    <div style="display:flex;justify-content:space-between"><span>COOKING OIL 1L x12</span><span>936.00</span></div>
+    <div style="display:flex;justify-content:space-between"><span>IODIZED SALT x24</span><span>288.00</span></div>
+    <div style="display:flex;justify-content:space-between"><span>LAUNDRY PWD x48</span><span>432.00</span></div>
+    <div style="display:flex;justify-content:space-between"><span>DISH LIQUID x12</span><span>408.00</span></div>
+    <div style="display:flex;justify-content:space-between"><span>BATH SOAP 135G x12</span><span>264.00</span></div>
+    <div style="display:flex;justify-content:space-between"><span>TOOTHPASTE x10</span><span>380.00</span></div>
+    <div style="display:flex;justify-content:space-between"><span>FABRIC SOFT. x12</span><span>276.00</span></div>
+    <div style="display:flex;justify-content:space-between"><span>INSECT SPRAY x6</span><span>390.00</span></div>
+    <div style="display:flex;justify-content:space-between;opacity:0.35"><span>·········· x??</span><span>???</span></div>
+    <div style="display:flex;justify-content:space-between;opacity:0.35"><span>·········· x??</span><span>???</span></div>
+  </div>
+  <hr class="divider" style="margin:var(--space-3) 0;border-top:1px dashed var(--color-border-strong)">
+  <div style="display:flex;justify-content:space-between;font-weight:600">
+    <span>TOTAL</span><span>₱4,190.00</span>
+  </div>
+</div>
+
+  </div>
+
+  <div>
+    <h3 class="section-heading" style="margin-bottom:var(--space-3)"><svg class="icon icon-sm" aria-hidden="true"><use href="#icon-check-circle"></use></svg> <span class="i18n" data-en="Recognized" data-fil="Nakilala">Recognized</span></h3>
+    <div class="review-line state-ready">
+      <svg class="review-line-icon"><use href="#icon-check-circle"></use></svg>
+      <span class="row-main">
+        <span class="row-title">Soy Sauce (Toyo), 200ml</span>
+        <span class="row-meta" data-line-status>24 pcs · ₱18.00 each</span>
+      </span>
+      <div class="review-line-actions" style="display:flex;gap:var(--space-2);flex-shrink:0"></div>
+    </div><div class="review-line state-ready">
+      <svg class="review-line-icon"><use href="#icon-check-circle"></use></svg>
+      <span class="row-main">
+        <span class="row-title">Vinegar (Suka), 200ml</span>
+        <span class="row-meta" data-line-status>24 pcs · ₱16.00 each</span>
+      </span>
+      <div class="review-line-actions" style="display:flex;gap:var(--space-2);flex-shrink:0"></div>
+    </div><div class="review-line state-ready">
+      <svg class="review-line-icon"><use href="#icon-check-circle"></use></svg>
+      <span class="row-main">
+        <span class="row-title">Cooking Oil, 1L</span>
+        <span class="row-meta" data-line-status>12 pcs · ₱78.00 each</span>
+      </span>
+      <div class="review-line-actions" style="display:flex;gap:var(--space-2);flex-shrink:0"></div>
+    </div><div class="review-line state-ready">
+      <svg class="review-line-icon"><use href="#icon-check-circle"></use></svg>
+      <span class="row-main">
+        <span class="row-title">Iodized Salt, 250g</span>
+        <span class="row-meta" data-line-status>24 pcs · ₱12.00 each</span>
+      </span>
+      <div class="review-line-actions" style="display:flex;gap:var(--space-2);flex-shrink:0"></div>
+    </div><div class="review-line state-ready">
+      <svg class="review-line-icon"><use href="#icon-check-circle"></use></svg>
+      <span class="row-main">
+        <span class="row-title">Laundry Powder, Sachet</span>
+        <span class="row-meta" data-line-status>48 pcs · ₱9.00 each</span>
+      </span>
+      <div class="review-line-actions" style="display:flex;gap:var(--space-2);flex-shrink:0"></div>
+    </div><div class="review-line state-ready">
+      <svg class="review-line-icon"><use href="#icon-check-circle"></use></svg>
+      <span class="row-main">
+        <span class="row-title">Dishwashing Liquid, 250ml</span>
+        <span class="row-meta" data-line-status>12 pcs · ₱34.00 each</span>
+      </span>
+      <div class="review-line-actions" style="display:flex;gap:var(--space-2);flex-shrink:0"></div>
+    </div>
+
+    <h3 class="section-heading" style="margin:var(--space-6) 0 var(--space-3)"><svg class="icon icon-sm" aria-hidden="true"><use href="#icon-alert-triangle"></use></svg> <span class="i18n" data-en="Check these items" data-fil="Suriin ang mga ito">Check these items</span></h3>
+    <div class="review-line state-attention">
+      <svg class="review-line-icon"><use href="#icon-alert-triangle"></use></svg>
+      <span class="row-main">
+        <span class="row-title">Bath Soap, 135g</span>
+        <span class="row-meta" data-line-status><span class="i18n" data-en="Closest match in your inventory: Bath Soap, 90g — is this the same product?" data-fil="Pinakamalapit na tugma sa imbentaryo: Bath Soap, 90g — ito rin ba?">Closest match in your inventory: Bath Soap, 90g — is this the same product?</span></span>
+      </span>
+      <div class="review-line-actions" style="display:flex;gap:var(--space-2);flex-shrink:0"><button type="button" class="btn btn-secondary btn-sm" data-line-action="confirm-match"><span class="i18n" data-en="Yes, same product" data-fil="Oo, pareho">Yes, same product</span></button><button type="button" class="btn btn-ghost btn-sm" data-line-action="add-new"><span class="i18n" data-en="Add as new" data-fil="Bagong produkto">Add as new</span></button></div>
+    </div><div class="review-line state-attention">
+      <svg class="review-line-icon"><use href="#icon-alert-triangle"></use></svg>
+      <span class="row-main">
+        <span class="row-title"><span class="i18n" data-en="Toothpaste (size not shown)" data-fil="Toothpaste (hindi nakalagay ang laki)">Toothpaste (size not shown)</span></span>
+        <span class="row-meta" data-line-status><span class="i18n" data-en="Choose which product this is." data-fil="Piliin kung aling produkto ito.">Choose which product this is.</span></span>
+      </span>
+      <div class="review-line-actions" style="display:flex;gap:var(--space-2);flex-shrink:0"><button type="button" class="btn btn-secondary btn-sm" data-line-action="confirm-match"><span class="i18n" data-en="Choose a product" data-fil="Pumili ng produkto">Choose a product</span></button><button type="button" class="btn btn-ghost btn-sm" data-line-action="skip"><span class="i18n" data-en="Skip" data-fil="Laktawan">Skip</span></button></div>
+    </div>
+
+    <h3 class="section-heading" style="margin:var(--space-6) 0 var(--space-3)"><svg class="icon icon-sm" aria-hidden="true"><use href="#icon-tag"></use></svg> <span class="i18n" data-en="New products" data-fil="Bagong produkto">New products</span></h3>
+    <div class="review-line state-new">
+      <svg class="review-line-icon"><use href="#icon-tag"></use></svg>
+      <span class="row-main">
+        <span class="row-title">Fabric Softener, 250ml</span>
+        <span class="row-meta" data-line-status><span class="i18n" data-en="Not in your inventory yet" data-fil="Wala pa sa iyong imbentaryo">Not in your inventory yet</span></span>
+      </span>
+      <div class="review-line-actions" style="display:flex;gap:var(--space-2);flex-shrink:0"><button type="button" class="btn btn-primary btn-sm" data-line-action="add-new"><span class="i18n" data-en="Add as new product" data-fil="Idagdag bilang bago">Add as new product</span></button><button type="button" class="btn btn-ghost btn-sm" data-line-action="skip"><span class="i18n" data-en="Skip" data-fil="Laktawan">Skip</span></button></div>
+    </div><div class="review-line state-new">
+      <svg class="review-line-icon"><use href="#icon-tag"></use></svg>
+      <span class="row-main">
+        <span class="row-title">Insect Spray, 300ml</span>
+        <span class="row-meta" data-line-status><span class="i18n" data-en="Not in your inventory yet" data-fil="Wala pa sa iyong imbentaryo">Not in your inventory yet</span></span>
+      </span>
+      <div class="review-line-actions" style="display:flex;gap:var(--space-2);flex-shrink:0"><button type="button" class="btn btn-primary btn-sm" data-line-action="add-new"><span class="i18n" data-en="Add as new product" data-fil="Idagdag bilang bago">Add as new product</span></button><button type="button" class="btn btn-ghost btn-sm" data-line-action="skip"><span class="i18n" data-en="Skip" data-fil="Laktawan">Skip</span></button></div>
+    </div>
+
+    <h3 class="section-heading" style="margin:var(--space-6) 0 var(--space-3)"><svg class="icon icon-sm" aria-hidden="true"><use href="#icon-x-circle"></use></svg> <span class="i18n" data-en="Couldn't read" data-fil="Hindi nabasa">Couldn't read</span></h3>
+    <div class="review-line state-unreadable">
+      <svg class="review-line-icon"><use href="#icon-x-circle"></use></svg>
+      <span class="row-main">
+        <span class="row-title"><span class="i18n" data-en="Couldn't read this clearly" data-fil="Hindi ito nabasa nang malinaw">Couldn't read this clearly</span></span>
+        <span class="row-meta" data-line-status><span class="i18n" data-en="Line 9 on the receipt" data-fil="Linya 9 sa resibo">Line 9 on the receipt</span></span>
+      </span>
+      <div class="review-line-actions" style="display:flex;gap:var(--space-2);flex-shrink:0"><button type="button" class="btn btn-secondary btn-sm" data-line-action="add-new"><span class="i18n" data-en="Enter manually" data-fil="Ipasok nang manu-mano">Enter manually</span></button><button type="button" class="btn btn-ghost btn-sm" data-line-action="skip"><span class="i18n" data-en="Skip this item" data-fil="Laktawan ang item na ito">Skip this item</span></button></div>
+    </div><div class="review-line state-unreadable">
+      <svg class="review-line-icon"><use href="#icon-x-circle"></use></svg>
+      <span class="row-main">
+        <span class="row-title"><span class="i18n" data-en="Couldn't read this clearly" data-fil="Hindi ito nabasa nang malinaw">Couldn't read this clearly</span></span>
+        <span class="row-meta" data-line-status><span class="i18n" data-en="Line 12 on the receipt" data-fil="Linya 12 sa resibo">Line 12 on the receipt</span></span>
+      </span>
+      <div class="review-line-actions" style="display:flex;gap:var(--space-2);flex-shrink:0"><button type="button" class="btn btn-secondary btn-sm" data-line-action="add-new"><span class="i18n" data-en="Enter manually" data-fil="Ipasok nang manu-mano">Enter manually</span></button><button type="button" class="btn btn-ghost btn-sm" data-line-action="skip"><span class="i18n" data-en="Skip this item" data-fil="Laktawan ang item na ito">Skip this item</span></button></div>
+    </div>
+
+    <div class="card card-tint-brand card-pad" style="margin-top:var(--space-8)">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);flex-wrap:wrap">
+        <div>
+          <p class="font-semibold"><span class="i18n" data-en="Once confirmed, your inventory will update to match." data-fil="Kapag nakumpirma, ma-a-update ang imbentaryo mo.">Once confirmed, your inventory will update to match.</span></p>
+          <p class="text-sm text-muted"><span class="i18n" data-en="Skipped or unresolved items will not change your stock." data-fil="Ang mga nilaktawan ay hindi makakaapekto sa iyong stock.">Skipped or unresolved items will not change your stock.</span></p>
+        </div>
+        <button class="btn btn-primary btn-lg" data-confirm-receipt disabled title="Check every item before confirming">
+          <svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg> <span class="i18n" data-en="Confirm and update inventory" data-fil="Kumpirmahin at i-update ang imbentaryo">Confirm and update inventory</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+</main></div></div><nav class="mobile-nav" aria-label="Primary">
+  <a class="mobile-nav-item" href="dashboard.html" data-nav="dashboard"><svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg><span class="i18n" data-en="Home" data-fil="Tahanan">Home</span></a>
+  <a class="mobile-nav-item" href="inventory.html" data-nav="inventory"><svg class="icon" aria-hidden="true"><use href="#icon-package"></use></svg><span class="i18n" data-en="Stock" data-fil="Stok">Stock</span></a>
+  <a class="mobile-nav-fab" href="receipt-upload.html" aria-label="Scan receipt"><svg class="icon" aria-hidden="true"><use href="#icon-camera"></use></svg></a>
+  <a class="mobile-nav-item" href="sales.html" data-nav="sales"><svg class="icon" aria-hidden="true"><use href="#icon-bag"></use></svg><span class="i18n" data-en="Sales" data-fil="Benta">Sales</span></a>
+  <a class="mobile-nav-item" href="notifications.html" data-nav="notifications"><svg class="icon" aria-hidden="true"><use href="#icon-bell"></use></svg><span class="i18n" data-en="Alerts" data-fil="Abiso">Alerts</span><span class="badge badge-danger nav-badge">2</span></a>
+</nav><div class="overlay-scrim" data-scrim="mobile-menu"></div>
+<div class="drawer" data-drawer="mobile-menu" role="dialog" aria-label="Menu" aria-modal="true">
+  <div class="drawer-header">
+    <span class="brand-mark"><span class="brand-glyph"><svg class="icon" aria-hidden="true"><use href="#icon-store"></use></svg></span><span class="brand-word">Tindahan</span></span>
+    <button class="btn-icon btn-ghost" data-drawer-close="mobile-menu" aria-label="Close menu"><svg class="icon" aria-hidden="true"><use href="#icon-x"></use></svg></button>
+  </div>
+  <div class="drawer-body">
+    <nav style="display:flex;flex-direction:column;gap:2px" aria-label="More">
+      <a class="nav-item" href="reports.html" data-nav="reports"><svg class="icon" aria-hidden="true"><use href="#icon-bar-chart"></use></svg><span class="i18n nav-label" data-en="Reports" data-fil="Ulat">Reports</span></a>
+      <a class="nav-item" href="search.html" data-nav="search"><svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg><span class="i18n nav-label" data-en="Search" data-fil="Maghanap">Search</span></a>
+      <a class="nav-item" href="notifications.html" data-nav="notifications"><svg class="icon" aria-hidden="true"><use href="#icon-bell"></use></svg><span class="i18n nav-label" data-en="Notifications" data-fil="Mga Abiso">Notifications</span></a>
+      <a class="nav-item" href="settings.html" data-nav="settings"><svg class="icon" aria-hidden="true"><use href="#icon-sliders"></use></svg><span class="i18n nav-label" data-en="Settings" data-fil="Mga Setting">Settings</span></a>
+      <hr class="divider" style="margin:var(--space-4) 0">
+      <a class="nav-item" href="index.html"><svg class="icon" aria-hidden="true"><use href="#icon-log-out"></use></svg><span class="i18n nav-label" data-en="Sign out" data-fil="Mag-sign out">Sign out</span></a>
+    </nav>
+  </div>
+</div><div class="toast-region" role="status" aria-live="polite"></div>
+<div class="modal" id="receipt-success-modal" role="dialog" aria-modal="true" aria-labelledby="receipt-success-title">
+  <div style="text-align:center">
+    <span class="empty-icon" style="margin:0 auto var(--space-4);background:var(--color-success-soft);color:var(--color-success)"><svg class="icon icon-lg" aria-hidden="true"><use href="#icon-check-circle"></use></svg></span>
+    <h3 id="receipt-success-title" style="margin-bottom:var(--space-2)"><span class="i18n" data-en="Inventory updated" data-fil="Na-update ang imbentaryo">Inventory updated</span></h3>
+    <p class="text-muted" style="margin-bottom:var(--space-6)"><span class="i18n" data-en="Stock from this receipt has been added." data-fil="Naidagdag na ang stock mula sa resibong ito.">Stock from this receipt has been added.</span></p>
+    <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+      <a class="btn btn-primary" href="inventory.html"><span class="i18n" data-en="View inventory" data-fil="Tingnan ang imbentaryo">View inventory</span></a>
+      <a class="btn btn-secondary" href="receipts.html"><span class="i18n" data-en="Back to receipts" data-fil="Bumalik sa resibo">Back to receipts</span></a>
+    </div>
+  </div>
+</div>
+<script src="js/app.js"></script>
+<script src="js/navigation.js"></script>
+<script src="js/mock-data.js"></script>
+<script src="js/interactions.js"></script>
+</body>
+</html>

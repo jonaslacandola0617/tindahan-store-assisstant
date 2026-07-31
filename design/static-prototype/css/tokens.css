@@ -1,0 +1,163 @@
+/* ==========================================================================
+   TINDAHAN DESIGN TOKENS
+   Warm Utility — single source of truth for color, type, space, shape, motion.
+   Do not hardcode hex values or pixel values outside this file.
+   ========================================================================== */
+
+:root {
+  /* ---- Brand colors ---- */
+  --color-brand-primary: #1B4D3E;
+  --color-brand-primary-hover: #163F33;
+  --color-brand-soft: #E8F2EE;
+  --color-accent: #D97724;
+  --color-accent-strong: #AD5811;
+  --color-accent-soft: #FDF6EE;
+
+  /* ---- Neutrals & canvas ---- */
+  --color-canvas: #FAF8F5;
+  --color-surface: #FFFFFF;
+  --color-surface-cream: #FDFBF7;
+  --color-border: #E6E2DC;
+  --color-border-strong: #9C917D;
+  --color-text-primary: #1A1D1A;
+  --color-text-muted: #5F665E;
+  --color-text-faint: #8A9089;
+
+  /* ---- Auxiliary olive (Inventory) ---- */
+  --color-olive-100: #EEF2E6;
+  --color-olive-300: #C9D4BF;
+  --color-olive-600: #6B7B52;
+
+  /* ---- Module surface tints ---- */
+  --tint-dashboard: #E8F2EE;
+  --tint-inventory: #EEF2E6;
+  --tint-receipts: #FDF6EE;
+  --tint-reports: #F4F4F5;
+  --tint-settings: #F8F9FA;
+
+  /* ---- Semantic ---- */
+  --color-success: #1B4D3E;
+  --color-success-soft: #E8F2EE;
+  --color-warning: #D97724;
+  --color-warning-text: #8A4A16;
+  --color-warning-soft: #FDF6EE;
+  --color-danger: #B3411F;
+  --color-danger-soft: #FBEAE3;
+  --color-info: #3E6B8F;
+  --color-info-soft: #EAF1F6;
+
+  /* ---- Typography ---- */
+  --font-family: 'Plus Jakarta Sans', 'DM Sans', system-ui, -apple-system, sans-serif;
+
+  --text-xs: 0.75rem;      /* 12 */
+  --text-sm: 0.8125rem;    /* 13 */
+  --text-base: 0.9375rem;  /* 15 */
+  --text-md: 1rem;         /* 16 */
+  --text-lg: 1.125rem;     /* 18 */
+  --text-xl: 1.375rem;     /* 22 */
+  --text-2xl: 1.75rem;     /* 28 */
+  --text-3xl: 2.125rem;    /* 34 */
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.6;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  --tracking-tight: -0.02em;
+
+  /* ---- Spacing scale (4px base) ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ---- Radii ---- */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 999px;
+
+  /* ---- Elevation ---- */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.03), 0 4px 12px -2px rgba(27, 77, 62, 0.04);
+  --shadow-overlay: 0 12px 32px -4px rgba(0, 0, 0, 0.08);
+  --shadow-focus: 0 0 0 3px rgba(27, 77, 62, 0.22);
+
+  /* ---- Layout ---- */
+  --sidebar-width-expanded: 240px;
+  --sidebar-width-collapsed: 72px;
+  --topbar-height: 68px;
+  --content-max-width: 1180px;
+  --mobile-nav-height: 64px;
+
+  /* ---- Motion ---- */
+  --transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: 240ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---- Z-index scale ---- */
+  --z-nav: 100;
+  --z-dropdown: 200;
+  --z-drawer: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+}
+
+/* ---- Dark mode ---- */
+[data-theme="dark"] {
+  --color-brand-primary: #34A872;
+  --color-brand-primary-hover: #3FBE80;
+  --color-brand-soft: #1C2B23;
+  --color-accent: #E2924A;
+  --color-accent-strong: #A85E0E;
+  --color-accent-soft: #2A2118;
+
+  --color-canvas: #121513;
+  --color-surface: #1A1E1B;
+  --color-surface-cream: #1D211D;
+  --color-border: #2A302B;
+  --color-border-strong: #63715F;
+  --color-text-primary: #F4F2ED;
+  --color-text-muted: #A0A69F;
+  --color-text-faint: #767D75;
+
+  --color-olive-100: #232A1F;
+  --color-olive-300: #3B4433;
+  --color-olive-600: #9BAE80;
+
+  --tint-dashboard: #1C2B23;
+  --tint-inventory: #232A1F;
+  --tint-receipts: #2A2118;
+  --tint-reports: #1E1F20;
+  --tint-settings: #1B1D1C;
+
+  --color-success: #34A872;
+  --color-success-soft: #1C2B23;
+  --color-warning: #E2924A;
+  --color-warning-text: #E2924A;
+  --color-warning-soft: #2A2118;
+  --color-danger: #E0764F;
+  --color-danger-soft: #2E1D16;
+  --color-info: #6FA3C7;
+  --color-info-soft: #182229;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.24), 0 4px 14px -2px rgba(0, 0, 0, 0.3);
+  --shadow-overlay: 0 16px 40px -6px rgba(0, 0, 0, 0.5);
+  --shadow-focus: 0 0 0 3px rgba(52, 168, 114, 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 1ms linear;
+    --transition-normal: 1ms linear;
+  }
+}

@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fresh Eggs (Medium) · Tindahan</title>
+<meta name="description" content="Tindahan — a store operating assistant for small neighborhood stores.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><rect width=%2224%22 height=%2224%22 rx=%226%22 fill=%22%231B4D3E%22/><path d=%22M4.5 9 5.5 5h13l1 4%22 stroke=%22white%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/><path d=%22M5.5 9v9.5h13V9%22 stroke=%22white%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/layouts.css">
+<link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="inventory">
+<a class="skip-link" href="#main"><span class="i18n" data-en="Skip to content" data-fil="Lumaktaw papunta sa nilalaman">Skip to content</span></a>
+<svg style="display:none">
+<defs>
+    <g style="display:none" id="ico-shell" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></g>
+  </defs>
+
+  <symbol id="icon-home" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9"/></g></symbol>
+
+  <symbol id="icon-package" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v9l9 5 9-5V8"/><path d="M12 13v9"/><path d="M16.5 5.5 7.5 10.5"/></g></symbol>
+
+  <symbol id="icon-receipt" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v18l-2.5-1.8L13 20l-1.5-1.8L10 20l-2.5-1.8L6 20V2Z"/><path d="M9 7.5h6"/><path d="M9 11h6"/><path d="M9 14.5h4"/></g></symbol>
+
+  <symbol id="icon-bag" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8h11l-1 12h-9l-1-12Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></g></symbol>
+
+  <symbol id="icon-bar-chart" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11"/><path d="M12 20V4"/><path d="M20 20v-6"/><path d="M2 20h20"/></g></symbol>
+
+  <symbol id="icon-sliders" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10"/><circle cx="17" cy="6" r="2"/><path d="M20 12H10"/><circle cx="7" cy="12" r="2"/><path d="M4 18h10"/><circle cx="17" cy="18" r="2"/></g></symbol>
+
+  <symbol id="icon-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></g></symbol>
+
+  <symbol id="icon-bell" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 0 0 4 0"/></g></symbol>
+
+  <symbol id="icon-menu" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></g></symbol>
+
+  <symbol id="icon-chevron-right" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m9 6 6 6-6 6"/></symbol>
+  <symbol id="icon-chevron-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="icon-chevron-left" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m15 6-6 6 6 6"/></symbol>
+  <symbol id="icon-chevrons-updown" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 9 4-4 4 4"/><path d="m8 15 4 4 4-4"/></g></symbol>
+
+  <symbol id="icon-plus" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></g></symbol>
+  <symbol id="icon-minus" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/></symbol>
+  <symbol id="icon-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5 10 17.5 20 6.5"/></symbol>
+  <symbol id="icon-check-circle" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></g></symbol>
+  <symbol id="icon-alert-triangle" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 9.5v4.5"/><path d="M12 17h.01"/></g></symbol>
+  <symbol id="icon-x" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></g></symbol>
+  <symbol id="icon-x-circle" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6"/><path d="m15 9-6 6"/></g></symbol>
+
+  <symbol id="icon-camera" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3.2l1.8-2.5h6l1.8 2.5H20v11H4V8Z"/><circle cx="12" cy="13.2" r="3.4"/></g></symbol>
+  <symbol id="icon-upload" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15.5V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16"/></g></symbol>
+  <symbol id="icon-edit" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18.5 9.5l-4-4L4 16v4Z"/><path d="m14 6 4 4"/></g></symbol>
+  <symbol id="icon-trash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4.5h6V7"/><path d="M6.5 7 7.3 20h9.4L17.5 7"/></g></symbol>
+
+  <symbol id="icon-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.2"/><path d="M12 19.8V22"/><path d="m4.9 4.9 1.5 1.5"/><path d="m17.6 17.6 1.5 1.5"/><path d="M2 12h2.2"/><path d="M19.8 12H22"/><path d="m4.9 19.1 1.5-1.5"/><path d="m17.6 6.4 1.5-1.5"/></g></symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/></symbol>
+  <symbol id="icon-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15.5 15.5 0 0 1 0 18"/><path d="M12 3a15.5 15.5 0 0 0 0 18"/></g></symbol>
+  <symbol id="icon-user" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6.2 8-6.2s8 2.2 8 6.2"/></g></symbol>
+  <symbol id="icon-arrow-left" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></g></symbol>
+  <symbol id="icon-filter" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M7 12h10"/><path d="M10 19h4"/></g></symbol>
+  <symbol id="icon-more" viewBox="0 0 24 24"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></symbol>
+  <symbol id="icon-truck" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h10v9H3z"/><path d="M13 10h4l3.5 3.2V16H13"/><circle cx="7.5" cy="18" r="1.7"/><circle cx="17" cy="18" r="1.7"/></g></symbol>
+  <symbol id="icon-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.3l3.2 1.9"/></g></symbol>
+  <symbol id="icon-trending-up" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 16 5.5-6.5 4 3.2L20 5.5"/><path d="M14.5 5.5H20v5.5"/></g></symbol>
+  <symbol id="icon-trending-down" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 8 5.5 6.5 4-3.2L20 18.5"/><path d="M14.5 18.5H20V13"/></g></symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.8h.01"/><path d="M11 11.3h1.3v5.2"/><path d="M10.7 16.5h2.8"/></g></symbol>
+  <symbol id="icon-refresh" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 0 1 13.2-4.8L20 9.5"/><path d="M20 4.5v5h-5"/><path d="M19.5 12a7.5 7.5 0 0 1-13.2 4.8L4 14.5"/><path d="M4 19.5v-5h5"/></g></symbol>
+  <symbol id="icon-wifi-off" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8.8a16 16 0 0 1 4.6-2.8"/><path d="M21.5 8.8a16 16 0 0 0-7.3-3.9"/><path d="M6.3 12.9a10 10 0 0 1 3-1.8"/><path d="M17.7 12.9a10 10 0 0 0-3.2-1.9"/><path d="M9.3 17a5 5 0 0 1 5.4 0"/><circle cx="12" cy="19.6" r="1" fill="currentColor" stroke="none"/><path d="M2 2l20 20"/></g></symbol>
+  <symbol id="icon-calendar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18"/><path d="M8 3v4"/><path d="M16 3v4"/></g></symbol>
+  <symbol id="icon-log-out" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H9"/><path d="m16 16 4-4-4-4"/><path d="M20 12H9"/></g></symbol>
+  <symbol id="icon-image" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15.5-5-5L5 21"/></g></symbol>
+  <symbol id="icon-store" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9 4.5 4h15l1 5"/><path d="M4.5 9v10.5h15V9"/><path d="M9.5 19.5v-6h5v6"/></g></symbol>
+  <symbol id="icon-loader" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="34 200"/></symbol>
+  <symbol id="icon-box-open" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 5l9 4.5"/><path d="M3 9.5v9L12 22l9-3.5v-9"/><path d="M12 5v17"/><path d="m3 9.5 9-3 9 3"/></g></symbol>
+  <symbol id="icon-tag" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.6 3.5H20v7.4L11.2 20 3.5 12.3 12.6 3.5Z"/><circle cx="16.2" cy="7.8" r="1.4" fill="currentColor" stroke="none"/></g></symbol>
+
+</svg>
+<div class="app-shell"><aside class="sidebar">
+  <div class="sidebar-header">
+    <a class="brand-mark" href="dashboard.html" aria-label="Tindahan home">
+      <span class="brand-glyph"><svg class="icon" aria-hidden="true"><use href="#icon-store"></use></svg></span>
+      <span class="brand-word">Tindahan</span>
+    </a>
+    <button class="sidebar-collapse-btn" data-sidebar-toggle aria-label="Collapse sidebar">
+      <svg class="icon" aria-hidden="true"><use href="#icon-chevrons-updown"></use></svg>
+    </button>
+  </div>
+  <nav class="sidebar-nav" aria-label="Primary">
+    <a class="nav-item" href="dashboard.html" data-nav="dashboard">
+          <svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg>
+          <span class="i18n nav-label" data-en="Dashboard" data-fil="Buod">Dashboard</span>
+          
+        </a>
+<a class="nav-item" href="inventory.html" data-nav="inventory">
+          <svg class="icon" aria-hidden="true"><use href="#icon-package"></use></svg>
+          <span class="i18n nav-label" data-en="Inventory" data-fil="Imbentaryo">Inventory</span>
+          <span class="badge badge-warning nav-badge">6</span>
+        </a>
+<a class="nav-item" href="sales.html" data-nav="sales">
+          <svg class="icon" aria-hidden="true"><use href="#icon-bag"></use></svg>
+          <span class="i18n nav-label" data-en="Sales" data-fil="Benta">Sales</span>
+          
+        </a>
+<a class="nav-item" href="receipts.html" data-nav="receipts">
+          <svg class="icon" aria-hidden="true"><use href="#icon-receipt"></use></svg>
+          <span class="i18n nav-label" data-en="Receipts" data-fil="Resibo">Receipts</span>
+          <span class="badge badge-info nav-badge">1</span>
+        </a>
+<a class="nav-item" href="reports.html" data-nav="reports">
+          <svg class="icon" aria-hidden="true"><use href="#icon-bar-chart"></use></svg>
+          <span class="i18n nav-label" data-en="Reports" data-fil="Ulat">Reports</span>
+          
+        </a>
+<a class="nav-item" href="settings.html" data-nav="settings">
+          <svg class="icon" aria-hidden="true"><use href="#icon-sliders"></use></svg>
+          <span class="i18n nav-label" data-en="Settings" data-fil="Mga Setting">Settings</span>
+          
+        </a>
+  </nav>
+  <button class="sidebar-expand-btn" data-sidebar-toggle aria-label="Expand sidebar">
+    <svg class="icon" aria-hidden="true"><use href="#icon-menu"></use></svg>
+  </button>
+  <div class="sidebar-footer">
+    <button class="sidebar-store" data-popover-toggle="store-popover" aria-haspopup="true">
+      <span class="avatar">RS</span>
+      <span style="min-width:0">
+        <span class="sidebar-store-name" style="display:block">Aling Rosa's Store</span>
+        <span class="sidebar-store-role">Owner</span>
+      </span>
+    </button>
+  </div>
+</aside><div class="main-col"><header class="topbar" has-back>
+    <div class="topbar-left">
+      <a class="mobile-back-btn" href="inventory.html" aria-label="Back"><svg class="icon" aria-hidden="true"><use href="#icon-arrow-left"></use></svg></a><h1 class="topbar-title"><span class="i18n" data-en="Fresh Eggs (Medium)" data-fil="Fresh Eggs (Medium)">Fresh Eggs (Medium)</span></h1>
+    </div>
+    
+    <div class="topbar-right">
+      <div class="segmented" data-lang-toggle role="group" aria-label="Language">
+        <button type="button" data-lang-option="en" class="active">EN</button>
+        <button type="button" data-lang-option="fil">FIL</button>
+      </div>
+      <button class="btn-icon btn-ghost" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">
+        <svg class="icon" aria-hidden="true"><use href="#icon-moon"></use></svg>
+      </button>
+      <a class="btn-icon btn-ghost" href="notifications.html" aria-label="Notifications" style="position:relative">
+        <svg class="icon" aria-hidden="true"><use href="#icon-bell"></use></svg>
+        <span class="badge badge-danger" style="position:absolute;top:4px;right:4px;padding:1px 5px;font-size:10px">3</span>
+      </a>
+    </div>
+  </header><main class="content" id="main">
+<a class="back-link" href="inventory.html"><svg class="icon icon-sm" aria-hidden="true"><use href="#icon-arrow-left"></use></svg> <span class="i18n" data-en="Back to inventory" data-fil="Bumalik sa imbentaryo">Back to inventory</span></a>
+
+<div class="content-header-row" style="margin-top:var(--space-3);margin-bottom:var(--space-6)">
+  <div style="display:flex;gap:var(--space-4);align-items:center">
+    <span class="product-thumb lg"><svg class="icon icon-lg" aria-hidden="true"><use href="#icon-bag"></use></svg></span>
+    <div>
+      <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap">
+        <h1 style="margin-bottom:0">Fresh Eggs (Medium)</h1>
+        <span class="badge badge-danger"><svg class="icon icon-sm" aria-hidden="true"><use href="#icon-x-circle"></use></svg> <span class="i18n" data-en="Out of stock" data-fil="Ubos na">Out of stock</span></span>
+      </div>
+      <p class="text-muted">Dairy & Eggs · San Roque Egg Farm</p>
+    </div>
+  </div>
+</div>
+
+<div class="dash-grid">
+  <div>
+    <!-- Update stock -->
+    <section class="card card-pad" style="margin-bottom:var(--space-6);border-color:var(--color-warning)">
+      <div class="card-header">
+        <div>
+          <h3 class="card-title"><span class="i18n" data-en="Update stock" data-fil="I-update ang stock">Update stock</span></h3>
+          <p class="card-subtitle"><span class="i18n" data-en="Set the correct quantity you have right now." data-fil="Ilagay ang tamang dami na mayroon ka ngayon.">Set the correct quantity you have right now.</span></p>
+        </div>
+      </div>
+      <form data-stock-adjust-form style="display:flex;flex-direction:column;gap:var(--space-5)">
+        <div class="field">
+          <label class="field-label" for="adj-qty"><span class="i18n" data-en="New quantity" data-fil="Bagong dami">New quantity</span></label>
+          <div class="stepper">
+            <button type="button" data-step="dec" aria-label="Decrease"><svg class="icon icon-sm" aria-hidden="true"><use href="#icon-minus"></use></svg></button>
+            <input id="adj-qty" type="number" value="0" min="0" aria-label="Quantity">
+            <button type="button" data-step="inc" aria-label="Increase"><svg class="icon icon-sm" aria-hidden="true"><use href="#icon-plus"></use></svg></button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="adj-reason"><span class="i18n" data-en="Reason for the change" data-fil="Dahilan ng pagbabago">Reason for the change</span></label>
+          <div class="select-wrap"><select class="select" id="adj-reason">
+            <option><span class="i18n" data-en="Received new stock" data-fil="Natanggap na bagong stock">Received new stock</span></option>
+            <option><span class="i18n" data-en="Correction" data-fil="Pagwawasto">Correction</span></option>
+            <option><span class="i18n" data-en="Damaged or expired" data-fil="Sira o expired">Damaged or expired</span></option>
+          </select><svg class="icon" aria-hidden="true"><use href="#icon-chevron-down"></use></svg></div>
+        </div>
+        <div>
+          <button type="submit" class="btn btn-primary"><span class="i18n" data-en="Save" data-fil="I-save">Save</span></button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card card-pad barcode-panel" data-product-barcode-root style="margin-bottom:var(--space-6)">
+      <div class="card-header">
+        <div>
+          <h3 class="card-title"><span class="i18n" data-en="Product barcode" data-fil="Barcode ng produkto">Product barcode</span></h3>
+          <p class="card-subtitle"><span class="i18n" data-en="For this individually sold item." data-fil="Para sa produktong tingi na ito.">For this individually sold item.</span></p>
+        </div>
+      </div>
+
+      <div data-barcode-empty>
+        <div class="banner banner-info" style="margin-bottom:var(--space-4)">
+          <svg class="icon" aria-hidden="true"><use href="#icon-tag"></use></svg>
+          <div><strong class="i18n" data-en="No barcode assigned" data-fil="Wala pang barcode">No barcode assigned</strong><p class="text-sm i18n" data-en="Tindahan can make one for you. You don't need to enter a code." data-fil="Maaaring gumawa ang Tindahan para sa iyo. Hindi mo kailangang maglagay ng code.">Tindahan can make one for you. You don't need to enter a code.</p></div>
+        </div>
+        <button type="button" class="btn btn-secondary" data-generate-barcode>
+          <svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg>
+          <span class="i18n" data-en="Generate barcode" data-fil="Gumawa ng barcode">Generate barcode</span>
+        </button>
+      </div>
+
+      <div data-barcode-generating hidden aria-live="polite">
+        <div class="banner banner-info"><svg class="icon spin" aria-hidden="true"><use href="#icon-loader"></use></svg><span class="i18n" data-en="Making a unique barcode…" data-fil="Gumagawa ng natatanging barcode…">Making a unique barcode…</span></div>
+      </div>
+
+      <div data-barcode-generation-error hidden>
+        <div class="banner banner-danger"><svg class="icon" aria-hidden="true"><use href="#icon-alert-triangle"></use></svg><span class="i18n" data-en="We couldn't make a barcode. Your product was not changed." data-fil="Hindi kami nakagawa ng barcode. Walang binago sa produkto.">We couldn't make a barcode. Your product was not changed.</span></div>
+        <button type="button" class="btn btn-secondary" data-generate-barcode><span class="i18n" data-en="Try again" data-fil="Subukan ulit">Try again</span></button>
+      </div>
+
+      <div data-barcode-ready hidden>
+        <div class="banner banner-success" style="margin-bottom:var(--space-4)">
+          <svg class="icon" aria-hidden="true"><use href="#icon-check-circle"></use></svg>
+          <span class="i18n" data-en="Barcode generated and saved to this product." data-fil="Nagawa at na-save ang barcode sa produktong ito.">Barcode generated and saved to this product.</span>
+        </div>
+        <div class="label-options" aria-label="Label type">
+          <button type="button" class="chip active" data-label-template="compact"><span class="i18n" data-en="Compact" data-fil="Maliit">Compact</span></button>
+          <button type="button" class="chip" data-label-template="standard"><span class="i18n" data-en="Standard" data-fil="Karaniwan">Standard</span></button>
+          <button type="button" class="chip" data-label-template="price"><span class="i18n" data-en="With price" data-fil="May presyo">With price</span></button>
+        </div>
+        <div class="barcode-label-preview" data-print-label>
+          <strong>Fresh Eggs (Medium)</strong>
+          <svg data-barcode-svg role="img" aria-label="Barcode for Fresh Eggs Medium" data-aria-en="Barcode for Fresh Eggs Medium" data-aria-fil="Barcode para sa Fresh Eggs Medium"></svg>
+          <div class="barcode-value" data-barcode-value>2800000000068</div>
+          <div class="font-semibold" data-label-price hidden>₱8.00</div>
+          <div class="text-xs text-muted">Tindahan</div>
+        </div>
+        <div class="label-options">
+          <button type="button" class="btn btn-secondary" data-print-barcode><svg class="icon" aria-hidden="true"><use href="#icon-receipt"></use></svg><span class="i18n" data-en="Print label" data-fil="I-print ang label">Print label</span></button>
+          <button type="button" class="btn btn-secondary" data-download-barcode><svg class="icon" aria-hidden="true"><use href="#icon-upload"></use></svg><span class="i18n" data-en="Download label" data-fil="I-download ang label">Download label</span></button>
+          <button type="button" class="btn btn-ghost" data-reprint-barcode><span class="i18n" data-en="Reprint" data-fil="I-print ulit">Reprint</span></button>
+          <button type="button" class="btn btn-ghost" data-modal-open="replace-barcode-modal"><span class="i18n" data-en="Replace barcode" data-fil="Palitan ang barcode">Replace barcode</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabs: Recent Sales / Related Receipts / History -->
+    <section class="card card-pad">
+      <div class="tabs" data-tabs-group="pd">
+        <button class="tab active" data-tab="sales"><span class="i18n" data-en="Recent sales" data-fil="Kamakailang benta">Recent sales</span></button>
+        <button class="tab" data-tab="receipts"><span class="i18n" data-en="Related receipts" data-fil="Kaugnay na resibo">Related receipts</span></button>
+        <button class="tab" data-tab="history"><span class="i18n" data-en="History" data-fil="Kasaysayan">History</span></button>
+      </div>
+
+      <div data-tab-panel="sales" data-tabs-group="pd" style="padding-top:var(--space-5)">
+        <div class="row-list">
+          <div class="row-item"><span class="attn-icon info"><svg class="icon" aria-hidden="true"><use href="#icon-bag"></use></svg></span><span class="row-main"><span class="row-title">6 <span class="i18n" data-en="sold" data-fil="nabenta">sold</span></span><span class="row-meta"><span class="i18n" data-en="Today, 8:30 AM" data-fil="Ngayon, 8:30 AM">Today, 8:30 AM</span></span></span><span class="row-value">₱48</span></div>
+          <div class="row-item"><span class="attn-icon info"><svg class="icon" aria-hidden="true"><use href="#icon-bag"></use></svg></span><span class="row-main"><span class="row-title">12 <span class="i18n" data-en="sold" data-fil="nabenta">sold</span></span><span class="row-meta"><span class="i18n" data-en="Yesterday, 5:12 PM" data-fil="Kahapon, 5:12 PM">Yesterday, 5:12 PM</span></span></span><span class="row-value">₱96</span></div>
+          <div class="row-item"><span class="attn-icon info"><svg class="icon" aria-hidden="true"><use href="#icon-bag"></use></svg></span><span class="row-main"><span class="row-title">6 <span class="i18n" data-en="sold" data-fil="nabenta">sold</span></span><span class="row-meta"><span class="i18n" data-en="Yesterday, 9:03 AM" data-fil="Kahapon, 9:03 AM">Yesterday, 9:03 AM</span></span></span><span class="row-value">₱48</span></div>
+        </div>
+      </div>
+      <div data-tab-panel="receipts" data-tabs-group="pd" style="display:none;padding-top:var(--space-5)">
+        <a class="row-item is-interactive" href="receipts.html">
+          <span class="attn-icon warning"><svg class="icon" aria-hidden="true"><use href="#icon-truck"></use></svg></span>
+          <span class="row-main"><span class="row-title">San Roque Egg Farm</span><span class="row-meta"><span class="i18n" data-en="Confirmed July 20 · 24 received" data-fil="Nakumpirma Hulyo 20 · 24 natanggap">Confirmed July 20 · 24 received</span></span></span>
+          <svg class="icon icon-sm" aria-hidden="true"><use href="#icon-chevron-right"></use></svg>
+        </a>
+      </div>
+      <div data-tab-panel="history" data-tabs-group="pd" style="display:none;padding-top:var(--space-5)">
+        <div class="row-list">
+          <div class="row-item" data-barcode-history-entry hidden><span class="attn-icon info"><svg class="icon" aria-hidden="true"><use href="#icon-tag"></use></svg></span><span class="row-main"><span class="row-title i18n" data-en="Tindahan barcode generated" data-fil="Gumawa ng Tindahan barcode">Tindahan barcode generated</span><span class="row-meta i18n" data-en="Just now · Product history preserved" data-fil="Ngayon lang · Napanatili ang kasaysayan ng produkto">Just now · Product history preserved</span></span></div>
+          <div class="row-item"><span class="attn-icon danger"><svg class="icon" aria-hidden="true"><use href="#icon-x-circle"></use></svg></span><span class="row-main"><span class="row-title"><span class="i18n" data-en="Out of stock" data-fil="Naubusan ng stock">Out of stock</span></span><span class="row-meta"><span class="i18n" data-en="Today, 8:30 AM" data-fil="Ngayon, 8:30 AM">Today, 8:30 AM</span></span></span></div>
+          <div class="row-item"><span class="attn-icon info"><svg class="icon" aria-hidden="true"><use href="#icon-trending-down"></use></svg></span><span class="row-main"><span class="row-title">-18 · <span class="i18n" data-en="sold across 3 sales" data-fil="nabenta sa 3 transaksyon">sold across 3 sales</span></span><span class="row-meta"><span class="i18n" data-en="Yesterday" data-fil="Kahapon">Yesterday</span></span></span></div>
+          <div class="row-item"><span class="attn-icon info"><svg class="icon" aria-hidden="true"><use href="#icon-truck"></use></svg></span><span class="row-main"><span class="row-title">+24 · <span class="i18n" data-en="received from San Roque Egg Farm" data-fil="natanggap mula San Roque Egg Farm">received from San Roque Egg Farm</span></span><span class="row-meta">July 20, 10:15 AM</span></span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Side: overview facts -->
+  <aside class="card card-pad">
+    <h3 class="card-title" style="margin-bottom:var(--space-4)"><span class="i18n" data-en="Overview" data-fil="Buod">Overview</span></h3>
+    <dl style="display:flex;flex-direction:column;gap:var(--space-4)">
+      <div style="display:flex;justify-content:space-between"><dt class="text-muted text-sm"><span class="i18n" data-en="Price" data-fil="Presyo">Price</span></dt><dd class="font-semibold">₱8.00</dd></div>
+      <div style="display:flex;justify-content:space-between"><dt class="text-muted text-sm"><span class="i18n" data-en="Sold by" data-fil="Ibinebenta bilang">Sold by</span></dt><dd class="font-semibold"><span class="i18n" data-en="Piece" data-fil="Piraso">Piece</span></dd></div>
+      <div style="display:flex;justify-content:space-between"><dt class="text-muted text-sm"><span class="i18n" data-en="Category" data-fil="Kategorya">Category</span></dt><dd class="font-semibold">Dairy & Eggs</dd></div>
+      <div style="display:flex;justify-content:space-between"><dt class="text-muted text-sm"><span class="i18n" data-en="Supplier" data-fil="Supplier">Supplier</span></dt><dd class="font-semibold">San Roque Egg Farm</dd></div>
+      <div style="display:flex;justify-content:space-between"><dt class="text-muted text-sm"><span class="i18n" data-en="Reminder point" data-fil="Reminder point">Reminder point</span></dt><dd class="font-semibold">24 <span class="i18n" data-en="pieces" data-fil="piraso">pieces</span></dd></div>
+    </dl>
+    <hr class="divider">
+    <button class="btn btn-secondary btn-block"><svg class="icon" aria-hidden="true"><use href="#icon-edit"></use></svg> <span class="i18n" data-en="Edit product details" data-fil="I-edit ang detalye">Edit product details</span></button>
+  </aside>
+</div>
+</main></div></div><nav class="mobile-nav" aria-label="Primary">
+  <a class="mobile-nav-item" href="dashboard.html" data-nav="dashboard"><svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg><span class="i18n" data-en="Home" data-fil="Tahanan">Home</span></a>
+  <a class="mobile-nav-item active" href="inventory.html" data-nav="inventory"><svg class="icon" aria-hidden="true"><use href="#icon-package"></use></svg><span class="i18n" data-en="Stock" data-fil="Stok">Stock</span></a>
+  <a class="mobile-nav-fab" href="receipt-upload.html" aria-label="Scan receipt"><svg class="icon" aria-hidden="true"><use href="#icon-camera"></use></svg></a>
+  <a class="mobile-nav-item" href="sales.html" data-nav="sales"><svg class="icon" aria-hidden="true"><use href="#icon-bag"></use></svg><span class="i18n" data-en="Sales" data-fil="Benta">Sales</span></a>
+  <a class="mobile-nav-item" href="notifications.html" data-nav="notifications"><svg class="icon" aria-hidden="true"><use href="#icon-bell"></use></svg><span class="i18n" data-en="Alerts" data-fil="Abiso">Alerts</span><span class="badge badge-danger nav-badge">2</span></a>
+</nav><div class="overlay-scrim" data-scrim="mobile-menu"></div>
+<div class="drawer" data-drawer="mobile-menu" role="dialog" aria-label="Menu" aria-modal="true">
+  <div class="drawer-header">
+    <span class="brand-mark"><span class="brand-glyph"><svg class="icon" aria-hidden="true"><use href="#icon-store"></use></svg></span><span class="brand-word">Tindahan</span></span>
+    <button class="btn-icon btn-ghost" data-drawer-close="mobile-menu" aria-label="Close menu"><svg class="icon" aria-hidden="true"><use href="#icon-x"></use></svg></button>
+  </div>
+  <div class="drawer-body">
+    <nav style="display:flex;flex-direction:column;gap:2px" aria-label="More">
+      <a class="nav-item" href="reports.html" data-nav="reports"><svg class="icon" aria-hidden="true"><use href="#icon-bar-chart"></use></svg><span class="i18n nav-label" data-en="Reports" data-fil="Ulat">Reports</span></a>
+      <a class="nav-item" href="search.html" data-nav="search"><svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg><span class="i18n nav-label" data-en="Search" data-fil="Maghanap">Search</span></a>
+      <a class="nav-item" href="notifications.html" data-nav="notifications"><svg class="icon" aria-hidden="true"><use href="#icon-bell"></use></svg><span class="i18n nav-label" data-en="Notifications" data-fil="Mga Abiso">Notifications</span></a>
+      <a class="nav-item" href="settings.html" data-nav="settings"><svg class="icon" aria-hidden="true"><use href="#icon-sliders"></use></svg><span class="i18n nav-label" data-en="Settings" data-fil="Mga Setting">Settings</span></a>
+      <hr class="divider" style="margin:var(--space-4) 0">
+      <a class="nav-item" href="index.html"><svg class="icon" aria-hidden="true"><use href="#icon-log-out"></use></svg><span class="i18n nav-label" data-en="Sign out" data-fil="Mag-sign out">Sign out</span></a>
+    </nav>
+  </div>
+</div><div class="toast-region" role="status" aria-live="polite"></div>
+<div class="modal" id="replace-barcode-modal" role="dialog" aria-modal="true" aria-labelledby="replace-barcode-title">
+  <div class="modal-header">
+    <div><h3 id="replace-barcode-title"><span class="i18n" data-en="Replace this barcode?" data-fil="Palitan ang barcode na ito?">Replace this barcode?</span></h3><p class="card-subtitle i18n" data-en="This changes which label can be scanned." data-fil="Magbabago kung aling label ang puwedeng i-scan.">This changes which label can be scanned.</p></div>
+    <button class="btn-icon btn-ghost" data-modal-close aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#icon-x"></use></svg></button>
+  </div>
+  <div class="banner banner-warning" style="margin-bottom:var(--space-5)"><svg class="icon" aria-hidden="true"><use href="#icon-alert-triangle"></use></svg><span class="i18n" data-en="A new barcode will be generated. Old printed labels will stop working, but all sales and inventory history will stay with this product. The old code will not be reused." data-fil="Gagawa ng bagong barcode. Hindi na gagana ang lumang naka-print na label, pero mananatili sa produktong ito ang lahat ng kasaysayan ng benta at imbentaryo. Hindi na muling gagamitin ang lumang code.">A new barcode will be generated. Old printed labels will stop working, but all sales and inventory history will stay with this product. The old code will not be reused.</span></div>
+  <div class="modal-actions"><button type="button" class="btn btn-secondary" data-modal-close><span class="i18n" data-en="Keep current barcode" data-fil="Panatilihin ang kasalukuyang barcode">Keep current barcode</span></button><button type="button" class="btn btn-danger" data-replace-barcode-confirm><span class="i18n" data-en="Replace barcode" data-fil="Palitan ang barcode">Replace barcode</span></button></div>
+</div>
+<script src="js/app.js"></script>
+<script src="js/navigation.js"></script>
+<script src="js/mock-data.js"></script>
+<script src="js/barcode-workflows.js?v=2"></script>
+<script src="js/interactions.js"></script>
+</body>
+</html>

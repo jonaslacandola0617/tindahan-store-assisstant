@@ -1,0 +1,570 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Language {
+  EN
+  FIL
+}
+
+enum Theme {
+  SYSTEM
+  LIGHT
+  DARK
+}
+
+enum MembershipRole {
+  OWNER
+  STAFF
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INVITED
+  DISABLED
+}
+
+enum ProductStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ProductUnit {
+  PIECE
+  PACK
+  SACHET
+  BOTTLE
+  CAN
+  BOX
+  DOZEN
+  GRAM
+  KILOGRAM
+  MILLILITER
+  LITER
+  SACK
+  CASE
+  TRAY
+  OTHER
+}
+
+enum BarcodeType {
+  MANUFACTURER
+  INTERNAL
+}
+
+enum BarcodeStatus {
+  ACTIVE
+  RETIRED
+}
+
+enum BarcodeLabelTemplate {
+  COMPACT
+  STANDARD
+  PRICE
+}
+
+enum InventoryMovementType {
+  OPENING
+  RECEIPT
+  SALE
+  ADJUSTMENT
+  REVERSAL
+}
+
+enum AdjustmentReason {
+  DAMAGED
+  EXPIRED
+  MISSING
+  CORRECTION
+}
+
+enum SaleStatus {
+  DRAFT
+  CONFIRMED
+}
+
+enum ReceiptStatus {
+  UPLOADED
+  QUEUED
+  PROCESSING
+  REVIEW_READY
+  CONFIRMED
+  FAILED
+}
+
+enum ReceiptMatchStatus {
+  CONFIRMED
+  NEEDS_REVIEW
+  UNMATCHED
+  EXCLUDED
+}
+
+enum NotificationType {
+  LOW_STOCK
+  RECEIPT_READY
+  RECEIPT_FAILED
+  DUPLICATE_RECEIPT
+  INVENTORY_CONFLICT
+  SYSTEM
+}
+
+enum IdempotencyStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+model User {
+  id                String   @id @default(cuid())
+  name              String?
+  email             String   @unique
+  emailVerified     DateTime?
+  image             String?
+  passwordHash      String?
+  preferredLanguage Language @default(EN)
+  preferredTheme    Theme    @default(SYSTEM)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  accounts          Account[]
+  sessions          Session[]
+  memberships       StoreMembership[]
+  sales             Sale[] @relation("SaleCreator")
+  receipts          Receipt[] @relation("ReceiptCreator")
+  receiptConfirmations ReceiptConfirmation[] @relation("ReceiptConfirmer")
+  movements         InventoryMovement[] @relation("MovementActor")
+  barcodeLabels     BarcodeLabel[] @relation("BarcodeLabelCreator")
+  notifications     Notification[]
+  auditEvents       AuditEvent[] @relation("AuditActor")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  @@unique([identifier, token])
+}
+
+model Store {
+  id          String   @id @default(cuid())
+  name        String
+  address     String?
+  contact     String?
+  currency    String   @default("PHP")
+  locale      String   @default("en-PH")
+  timezone    String   @default("Asia/Manila")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  memberships StoreMembership[]
+  preference  StorePreference?
+  categories  Category[]
+  suppliers   Supplier[]
+  products    Product[]
+  barcodes    ProductBarcode[]
+  barcodeLabels BarcodeLabel[]
+  balances    InventoryBalance[]
+  movements   InventoryMovement[]
+  sales       Sale[]
+  saleLines   SaleLine[]
+  receipts    Receipt[]
+  receiptFiles ReceiptFile[]
+  receiptExtractions ReceiptExtraction[]
+  receiptLines ReceiptLine[]
+  receiptMatches ReceiptLineMatch[]
+  receiptConfirmations ReceiptConfirmation[]
+  notifications Notification[]
+  auditEvents AuditEvent[]
+  idempotencyKeys IdempotencyKey[]
+  jobRuns JobRun[]
+}
+
+model StoreMembership {
+  id        String @id @default(cuid())
+  storeId   String
+  userId    String
+  role      MembershipRole @default(STAFF)
+  status    MembershipStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  store     Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([storeId, userId])
+  @@index([userId, status])
+}
+
+model StorePreference {
+  id                 String @id @default(cuid())
+  storeId            String @unique
+  defaultLanguage    Language @default(EN)
+  defaultTheme       Theme @default(SYSTEM)
+  lowStockEnabled    Boolean @default(true)
+  receiptNotifications Boolean @default(true)
+  store              Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model Category {
+  id             String @id @default(cuid())
+  storeId        String
+  name           String
+  normalizedName String
+  store          Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  products       Product[]
+  @@unique([storeId, normalizedName])
+}
+
+model Supplier {
+  id             String @id @default(cuid())
+  storeId        String
+  name           String
+  normalizedName String
+  store          Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  productReferences ProductSupplierReference[]
+  receipts       Receipt[]
+  @@unique([storeId, normalizedName])
+}
+
+model Product {
+  id                        String @id @default(cuid())
+  storeId                   String
+  categoryId                String?
+  name                      String
+  normalizedName            String
+  sellingUnit               ProductUnit
+  otherUnitRaw              String?
+  needsUnitCanonicalization Boolean @default(false)
+  sellingPrice              Decimal @db.Decimal(12, 2)
+  latestPurchaseCost        Decimal? @db.Decimal(12, 2)
+  lowStockThreshold         Int @default(0)
+  imageObjectKey            String?
+  status                    ProductStatus @default(ACTIVE)
+  version                   Int @default(0)
+  archivedAt                DateTime?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+  store                     Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  category                  Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  barcodes                  ProductBarcode[]
+  barcodeLabels             BarcodeLabel[]
+  supplierReferences        ProductSupplierReference[]
+  balance                   InventoryBalance?
+  movements                 InventoryMovement[]
+  saleLines                 SaleLine[]
+  receiptMatches            ReceiptLineMatch[]
+  @@index([storeId, status, normalizedName])
+  @@index([storeId, categoryId])
+}
+
+model ProductBarcode {
+  id              String @id @default(cuid())
+  storeId         String
+  productId       String
+  value           String
+  normalizedValue String
+  type            BarcodeType
+  status          BarcodeStatus @default(ACTIVE)
+  assignedAt      DateTime @default(now())
+  retiredAt       DateTime?
+  store           Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  product         Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  labels          BarcodeLabel[]
+  @@unique([storeId, normalizedValue])
+  @@index([storeId, productId, status])
+}
+
+model BarcodeLabel {
+  id          String @id @default(cuid())
+  storeId     String
+  productId   String
+  barcodeId   String
+  createdById String
+  template    BarcodeLabelTemplate
+  includesPrice Boolean @default(false)
+  createdAt   DateTime @default(now())
+  store       Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  product     Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  barcode     ProductBarcode @relation(fields: [barcodeId], references: [id], onDelete: Restrict)
+  createdBy   User @relation("BarcodeLabelCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  @@index([storeId, productId, createdAt])
+}
+
+model ProductSupplierReference {
+  id         String @id @default(cuid())
+  storeId    String
+  productId  String
+  supplierId String
+  supplierSku String?
+  alias      String?
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  @@unique([storeId, productId, supplierId])
+  @@index([storeId, supplierId])
+}
+
+model InventoryBalance {
+  id        String @id @default(cuid())
+  storeId   String
+  productId String @unique
+  quantity  Int @default(0)
+  version   Int @default(0)
+  updatedAt DateTime @updatedAt
+  store     Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  @@index([storeId, quantity])
+}
+
+model InventoryMovement {
+  id                String @id @default(cuid())
+  storeId           String
+  productId         String
+  actorId           String?
+  type              InventoryMovementType
+  quantityDelta     Int
+  resultingQuantity Int
+  adjustmentReason  AdjustmentReason?
+  sourceType        String
+  sourceId          String?
+  correlationId     String
+  createdAt         DateTime @default(now())
+  store             Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  product           Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  actor             User? @relation("MovementActor", fields: [actorId], references: [id], onDelete: SetNull)
+  @@index([storeId, productId, createdAt])
+  @@index([storeId, sourceType, sourceId])
+}
+
+model Sale {
+  id             String @id @default(cuid())
+  storeId        String
+  createdById    String
+  status         SaleStatus @default(DRAFT)
+  totalAmount    Decimal @default(0) @db.Decimal(12, 2)
+  idempotencyKey String?
+  confirmedAt    DateTime?
+  createdAt      DateTime @default(now())
+  store          Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  createdBy      User @relation("SaleCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  lines          SaleLine[]
+  @@unique([storeId, idempotencyKey])
+  @@index([storeId, status, createdAt])
+}
+
+model SaleLine {
+  id                  String @id @default(cuid())
+  storeId             String
+  saleId              String
+  productId           String
+  productNameSnapshot String
+  unitSnapshot        ProductUnit
+  quantity            Int
+  unitPrice           Decimal @db.Decimal(12, 2)
+  lineTotal           Decimal @db.Decimal(12, 2)
+  store               Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  sale                Sale @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  product             Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  @@index([storeId, saleId])
+  @@index([storeId, productId])
+}
+
+model Receipt {
+  id             String @id @default(cuid())
+  storeId        String
+  supplierId     String?
+  createdById    String
+  status         ReceiptStatus @default(UPLOADED)
+  idempotencyKey String?
+  receiptDate    DateTime?
+  confirmedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  store          Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  supplier       Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  createdBy      User @relation("ReceiptCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  file           ReceiptFile?
+  extraction     ReceiptExtraction?
+  lines          ReceiptLine[]
+  confirmation   ReceiptConfirmation?
+  jobRuns        JobRun[]
+  @@unique([storeId, idempotencyKey])
+  @@index([storeId, status, createdAt])
+}
+
+model ReceiptFile {
+  id        String @id @default(cuid())
+  storeId   String
+  receiptId String @unique
+  objectKey String @unique
+  mimeType  String
+  sizeBytes Int
+  sha256    String
+  createdAt DateTime @default(now())
+  store     Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  receipt   Receipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
+  @@index([storeId, sha256])
+}
+
+model ReceiptExtraction {
+  id           String @id @default(cuid())
+  storeId      String
+  receiptId    String @unique
+  provider     String
+  providerVersion String?
+  rawObjectKey String?
+  supplierName String?
+  receiptDate  DateTime?
+  grandTotal   Decimal? @db.Decimal(12, 2)
+  completedAt  DateTime?
+  store        Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  receipt      Receipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
+}
+
+model ReceiptLine {
+  id             String @id @default(cuid())
+  storeId        String
+  receiptId      String
+  rawName        String
+  normalizedName String
+  quantity       Decimal? @db.Decimal(12, 3)
+  unitPrice      Decimal? @db.Decimal(12, 2)
+  lineTotal      Decimal? @db.Decimal(12, 2)
+  excluded       Boolean @default(false)
+  store          Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  receipt        Receipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
+  matches        ReceiptLineMatch[]
+  @@index([storeId, receiptId])
+}
+
+model ReceiptLineMatch {
+  id            String @id @default(cuid())
+  storeId       String
+  receiptLineId String
+  productId     String?
+  status        ReceiptMatchStatus
+  internalScore Decimal? @db.Decimal(5, 4)
+  selected      Boolean @default(false)
+  createdAt     DateTime @default(now())
+  store         Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  receiptLine   ReceiptLine @relation(fields: [receiptLineId], references: [id], onDelete: Cascade)
+  product       Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  @@index([storeId, receiptLineId, status])
+}
+
+model ReceiptConfirmation {
+  id            String @id @default(cuid())
+  storeId       String
+  receiptId     String @unique
+  confirmedById String
+  correlationId String
+  confirmedAt   DateTime @default(now())
+  store         Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  receipt       Receipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
+  confirmedBy   User @relation("ReceiptConfirmer", fields: [confirmedById], references: [id], onDelete: Restrict)
+  @@index([storeId, confirmedAt])
+}
+
+model Notification {
+  id        String @id @default(cuid())
+  storeId   String
+  userId    String?
+  type      NotificationType
+  titleKey  String
+  bodyKey   String
+  data      Json?
+  groupKey  String?
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+  store     Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  user      User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  @@index([storeId, readAt, createdAt])
+  @@index([storeId, groupKey])
+}
+
+model AuditEvent {
+  id            String @id @default(cuid())
+  storeId       String
+  actorId       String?
+  action        String
+  entityType    String
+  entityId      String
+  correlationId String
+  before        Json?
+  after         Json?
+  createdAt     DateTime @default(now())
+  store         Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  actor         User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  @@index([storeId, entityType, entityId, createdAt])
+  @@index([correlationId])
+}
+
+model IdempotencyKey {
+  id          String @id @default(cuid())
+  storeId     String
+  scope       String
+  key         String
+  requestHash String
+  status      IdempotencyStatus @default(PROCESSING)
+  response    Json?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  store       Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  @@unique([storeId, scope, key])
+  @@index([expiresAt])
+}
+
+model JobRun {
+  id            String @id @default(cuid())
+  storeId       String
+  receiptId     String?
+  jobType       String
+  provider      String
+  externalId    String?
+  status        JobStatus @default(QUEUED)
+  attempts      Int @default(0)
+  lastErrorCode String?
+  nextRetryAt   DateTime?
+  correlationId String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  store         Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  receipt       Receipt? @relation(fields: [receiptId], references: [id], onDelete: SetNull)
+  @@index([storeId, status, nextRetryAt])
+  @@index([receiptId])
+}

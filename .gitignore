@@ -1,0 +1,12 @@
+node_modules/
+.pnpm-store/
+.next/
+*.tsbuildinfo
+coverage/
+.env
+.env.local
+.env.*.local
+!.env.example
+src/generated/
+.tmp-prd-render/
+*.log

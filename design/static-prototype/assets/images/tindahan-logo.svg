@@ -1,0 +1,10 @@
+<svg width="180" height="44" viewBox="0 0 180 44" xmlns="http://www.w3.org/2000/svg">
+  <!-- Tindahan wordmark: store glyph + Plus Jakarta Sans logotype -->
+  <rect x="0" y="4" width="36" height="36" rx="9" fill="#1B4D3E"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 16 9.5 10h17l1.5 6"/>
+    <path d="M9.5 16v14.5h17V16"/>
+    <path d="M15.5 30.5v-8h5v8"/>
+  </g>
+  <text x="46" y="29" font-family="'Plus Jakarta Sans', 'DM Sans', system-ui, sans-serif" font-size="22" font-weight="600" letter-spacing="-0.4" fill="#1A1D1A">Tindahan</text>
+</svg>
