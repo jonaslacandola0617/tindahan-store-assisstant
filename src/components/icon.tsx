@@ -13,6 +13,18 @@ const paths = {
   moon: <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/>,
   logout: <><path d="M9 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H9"/><path d="m16 16 4-4-4-4M20 12H9"/></>,
   check: <><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></>,
+  info: <><circle cx="12" cy="12" r="9"/><path d="M12 7.8h.01M11 11.3h1.3v5.2M10.7 16.5h2.8"/></>,
+  chevronDown: <path d="m6 9 6 6 6-6"/>,
+  plus: <path d="M12 5v14M5 12h14"/>,
+  minus: <path d="M5 12h14"/>,
+  list: <><path d="M8 6h12M8 12h12M8 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></>,
+  grid: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
+  arrowLeft: <path d="M19 12H5m6 6-6-6 6-6"/>,
+  tag: <><path d="M12.6 3.5H20v7.4L11.2 20 3.5 12.3 12.6 3.5Z"/><circle cx="16.2" cy="7.8" r="1.4"/></>,
+  printer: <><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/></>,
+  download: <><path d="M12 3v12m-5-5 5 5 5-5"/><path d="M5 21h14"/></>,
+  edit: <><path d="M4 20h4L18.5 9.5l-4-4L4 16v4Z"/><path d="m14 6 4 4"/></>,
+  x: <><path d="M6 6l12 12M18 6 6 18"/></>,
 } as const;
 
 export type IconName = keyof typeof paths;

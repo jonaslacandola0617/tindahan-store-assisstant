@@ -18,6 +18,11 @@ enum Theme {
   DARK
 }
 
+enum InventoryView {
+  LIST
+  GRID
+}
+
 enum MembershipRole {
   OWNER
   STAFF
@@ -145,6 +150,7 @@ model User {
   receiptConfirmations ReceiptConfirmation[] @relation("ReceiptConfirmer")
   movements         InventoryMovement[] @relation("MovementActor")
   barcodeLabels     BarcodeLabel[] @relation("BarcodeLabelCreator")
+  barcodeAssignments ProductBarcode[] @relation("BarcodeAssigner")
   notifications     Notification[]
   auditEvents       AuditEvent[] @relation("AuditActor")
 }
@@ -237,6 +243,7 @@ model StorePreference {
   defaultTheme       Theme @default(SYSTEM)
   lowStockEnabled    Boolean @default(true)
   receiptNotifications Boolean @default(true)
+  inventoryView      InventoryView @default(LIST)
   store              Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
 }
 
@@ -266,6 +273,7 @@ model Product {
   storeId                   String
   categoryId                String?
   name                      String
+  description               String?
   normalizedName            String
   sellingUnit               ProductUnit
   otherUnitRaw              String?
@@ -290,12 +298,15 @@ model Product {
   receiptMatches            ReceiptLineMatch[]
   @@index([storeId, status, normalizedName])
   @@index([storeId, categoryId])
+  @@index([storeId, status, updatedAt])
 }
 
 model ProductBarcode {
   id              String @id @default(cuid())
   storeId         String
   productId       String
+  assignedById    String
+  replacesId      String?
   value           String
   normalizedValue String
   type            BarcodeType
@@ -304,9 +315,14 @@ model ProductBarcode {
   retiredAt       DateTime?
   store           Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
   product         Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  assignedBy      User @relation("BarcodeAssigner", fields: [assignedById], references: [id], onDelete: Restrict)
+  replaces        ProductBarcode? @relation("BarcodeReplacement", fields: [replacesId], references: [id], onDelete: Restrict)
+  replacedBy      ProductBarcode[] @relation("BarcodeReplacement")
   labels          BarcodeLabel[]
   @@unique([storeId, normalizedValue])
   @@index([storeId, productId, status])
+  @@index([assignedById])
+  @@index([replacesId])
 }
 
 model BarcodeLabel {
@@ -357,6 +373,7 @@ model InventoryMovement {
   actorId           String?
   type              InventoryMovementType
   quantityDelta     Int
+  previousQuantity  Int
   resultingQuantity Int
   adjustmentReason  AdjustmentReason?
   sourceType        String

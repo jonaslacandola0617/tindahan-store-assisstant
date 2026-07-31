@@ -6,6 +6,7 @@ export const storeInput = z.object({
   address: z.string().trim().max(240).optional(),
   contact: z.string().trim().max(80).optional(),
   language: z.enum(["EN", "FIL"]).default("EN"),
+  lowStockEnabled: z.boolean().default(true),
 });
 
 export async function createStoreForOwner(userId: string, input: unknown) {
@@ -15,7 +16,7 @@ export async function createStoreForOwner(userId: string, input: unknown) {
       name: value.name,
       address: value.address || null,
       contact: value.contact || null,
-      preference: { create: { defaultLanguage: value.language } },
+      preference: { create: { defaultLanguage: value.language, lowStockEnabled: value.lowStockEnabled } },
       memberships: { create: { userId, role: "OWNER", status: "ACTIVE" } },
     },
     select: { id: true, name: true },

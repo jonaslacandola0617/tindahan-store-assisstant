@@ -15,8 +15,10 @@
     "test:watch": "vitest",
     "db:generate": "prisma generate",
     "db:validate": "prisma validate",
-    "db:migrate": "prisma migrate deploy",
-    "db:seed": "tsx prisma/seed.ts",
+    "db:migrate": "node scripts/run-prisma.mjs direct migrate deploy",
+    "db:migrate:dev": "node scripts/run-prisma.mjs direct migrate dev",
+    "db:migrate:test": "node scripts/run-prisma.mjs test migrate deploy",
+    "db:seed": "node --env-file=.env --import tsx prisma/seed.ts",
     "quality": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "postinstall": "prisma generate"
   },
