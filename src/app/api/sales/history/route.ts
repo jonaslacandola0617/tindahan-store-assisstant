@@ -1,0 +1,2 @@
+import{NextRequest,NextResponse}from"next/server";import{listSales}from"@/modules/sales/application/sales-service";import{salesHttpError,salesUserId}from"@/modules/sales/presentation/http";
+export async function GET(request:NextRequest){try{return NextResponse.json(await listSales(await salesUserId(),{range:request.nextUrl.searchParams.get("range")??"today",cursor:request.nextUrl.searchParams.get("cursor")||undefined,limit:20}));}catch(error){return salesHttpError(error);}}

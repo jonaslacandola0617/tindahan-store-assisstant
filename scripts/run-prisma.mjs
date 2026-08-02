@@ -14,7 +14,7 @@ if (!(["direct", "test"].includes(target)) || prismaArguments.length === 0) {
   process.exit(1);
 }
 
-const connectionUrl =
+let connectionUrl =
   target === "test"
     ? process.env.TEST_DATABASE_URL ?? process.env.TEST_DATABASE
     : process.env.DIRECT_URL ?? process.env.DATABASE_URL;
@@ -23,6 +23,14 @@ if (!connectionUrl) {
   const requiredName = target === "test" ? "TEST_DATABASE_URL (or legacy TEST_DATABASE)" : "DIRECT_URL or DATABASE_URL";
   console.error(`${requiredName} must be configured before running this command.`);
   process.exit(1);
+}
+
+// Keep automated tests out of the provider's shared `public` schema. This also
+// makes the test target safe when a pooled database URL points at a reused DB.
+if (target === "test") {
+  const url = new URL(connectionUrl);
+  url.searchParams.set("schema", "tindahan_phase3_test");
+  connectionUrl = url.toString();
 }
 
 const prismaCli = resolve("node_modules", "prisma", "build", "index.js");

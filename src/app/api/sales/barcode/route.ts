@@ -1,0 +1,2 @@
+import{NextRequest,NextResponse}from"next/server";import{resolveSaleBarcode}from"@/modules/sales/application/sales-service";import{salesHttpError,salesUserId}from"@/modules/sales/presentation/http";
+export async function GET(request:NextRequest){try{return NextResponse.json(await resolveSaleBarcode(await salesUserId(),request.nextUrl.searchParams.get("code")??""));}catch(error){return salesHttpError(error);}}

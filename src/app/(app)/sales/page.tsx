@@ -1,0 +1,3 @@
+import{cookies}from"next/headers";import{getServerSession}from"next-auth";import{redirect}from"next/navigation";import{authOptions}from"@/modules/identity/infrastructure/auth-options";import{listSales}from"@/modules/sales/application/sales-service";import{SalesHistoryClient}from"./sales-history-client";
+export const metadata={title:"Sales"};
+export default async function SalesPage(){const session=await getServerSession(authOptions);if(!session?.user.id)redirect("/sign-in");const initial=await listSales(session.user.id,{range:"today",limit:20});const locale=(await cookies()).get("tindahan-language")?.value==="FIL"?"FIL":"EN";return <SalesHistoryClient initial={initial} locale={locale}/>;}

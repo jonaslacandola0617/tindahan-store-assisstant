@@ -1,0 +1,2 @@
+import{NextRequest,NextResponse}from"next/server";import{correctSale}from"@/modules/sales/application/sales-service";import{salesHttpError,salesUserId}from"@/modules/sales/presentation/http";
+export async function POST(request:NextRequest,{params}:{params:Promise<{saleId:string}>}){try{const{saleId}=await params;return NextResponse.json(await correctSale(await salesUserId(),saleId,await request.json()));}catch(error){return salesHttpError(error);}}

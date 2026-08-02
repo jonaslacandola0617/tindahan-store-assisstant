@@ -13,7 +13,10 @@ Requirements: Node.js 20.19 or newer, pnpm, and PostgreSQL.
 2. Install dependencies with `pnpm install`.
 3. Generate the Prisma client with `pnpm db:generate`.
 4. Apply migrations with `pnpm db:migrate`.
-5. Start the application with `pnpm dev`.
+5. Seed a reproducible local owner with `pnpm db:seed`.
+6. Start the application with `pnpm dev`.
+
+The seed account is `owner@example.test` with password `change-this-demo-password`. Change or remove it outside local development.
 
 ### Database connections
 
@@ -23,7 +26,9 @@ Requirements: Node.js 20.19 or newer, pnpm, and PostgreSQL.
 
 The legacy name `TEST_DATABASE` is accepted for the current local setup, but `TEST_DATABASE_URL` is preferred for new environments.
 
-Never point `TEST_DATABASE_URL` at a development or production database. Unit tests do not require a database; future integration tests automatically replace the runtime connection with `TEST_DATABASE_URL` when it is present.
+Never point `TEST_DATABASE_URL` at a development or production database. Database-backed tests automatically use the isolated `tindahan_phase3_test` schema. Prepare it with `pnpm db:migrate:test`; unit tests do not require a database.
+
+The seed also creates a small barcode-ready catalog for the Sales workflow without overwriting existing products. Open `/sales/new` to search, scan, or record a sale. Camera recognition depends on browser `BarcodeDetector` support; manual entry and compatible keyboard-style scanners remain available everywhere.
 
 For UI-only development without PostgreSQL, set `AUTH_DEMO_MODE=true` and provide the demo credentials documented in `.env.example`. Demo mode is rejected when `NODE_ENV=production`.
 

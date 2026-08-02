@@ -91,6 +91,7 @@ enum AdjustmentReason {
 enum SaleStatus {
   DRAFT
   CONFIRMED
+  CORRECTED
 }
 
 enum ReceiptStatus {
@@ -153,6 +154,7 @@ model User {
   barcodeAssignments ProductBarcode[] @relation("BarcodeAssigner")
   notifications     Notification[]
   auditEvents       AuditEvent[] @relation("AuditActor")
+  saleCorrections   SaleCorrection[] @relation("SaleCorrectionActor")
 }
 
 model Account {
@@ -210,6 +212,7 @@ model Store {
   movements   InventoryMovement[]
   sales       Sale[]
   saleLines   SaleLine[]
+  saleCorrections SaleCorrection[]
   receipts    Receipt[]
   receiptFiles ReceiptFile[]
   receiptExtractions ReceiptExtraction[]
@@ -393,14 +396,18 @@ model Sale {
   createdById    String
   status         SaleStatus @default(DRAFT)
   totalAmount    Decimal @default(0) @db.Decimal(12, 2)
+  totalQuantity  Int @default(0)
   idempotencyKey String?
+  correlationId  String?
   confirmedAt    DateTime?
   createdAt      DateTime @default(now())
   store          Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
   createdBy      User @relation("SaleCreator", fields: [createdById], references: [id], onDelete: Restrict)
   lines          SaleLine[]
+  correction     SaleCorrection?
   @@unique([storeId, idempotencyKey])
   @@index([storeId, status, createdAt])
+  @@index([storeId, confirmedAt])
 }
 
 model SaleLine {
@@ -410,6 +417,7 @@ model SaleLine {
   productId           String
   productNameSnapshot String
   unitSnapshot        ProductUnit
+  otherUnitSnapshot   String?
   quantity            Int
   unitPrice           Decimal @db.Decimal(12, 2)
   lineTotal           Decimal @db.Decimal(12, 2)
@@ -418,6 +426,21 @@ model SaleLine {
   product             Product @relation(fields: [productId], references: [id], onDelete: Restrict)
   @@index([storeId, saleId])
   @@index([storeId, productId])
+}
+
+model SaleCorrection {
+  id             String @id @default(cuid())
+  storeId        String
+  saleId         String @unique
+  actorId        String
+  reason         String
+  correlationId  String
+  createdAt      DateTime @default(now())
+  store          Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  sale           Sale @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  actor          User @relation("SaleCorrectionActor", fields: [actorId], references: [id], onDelete: Restrict)
+  @@index([storeId, createdAt])
+  @@index([actorId])
 }
 
 model Receipt {

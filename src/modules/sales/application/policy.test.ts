@@ -1,0 +1,2 @@
+import{describe,expect,it}from"vitest";import{mayRecordSale,requireSaleOwner}from"./policy";
+describe("sales permissions",()=>{it("allows owner and staff to record",()=>{expect(()=>mayRecordSale("OWNER")).not.toThrow();expect(()=>mayRecordSale("STAFF")).not.toThrow()});it("keeps corrections owner-only",()=>{expect(()=>requireSaleOwner("OWNER")).not.toThrow();expect(()=>requireSaleOwner("STAFF")).toThrow("Only the store owner")})});
