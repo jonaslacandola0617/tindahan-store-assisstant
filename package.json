@@ -25,6 +25,7 @@
     "receipts:worker:once": "node --env-file=.env --import tsx scripts/receipt-worker.ts --once",
     "receipts:fixtures": "node --experimental-strip-types scripts/create-receipt-fixtures.mts",
     "receipts:retention": "node --env-file=.env --import tsx scripts/enforce-receipt-retention.ts",
+    "receipts:lifecycle": "node --env-file=.env --import tsx scripts/configure-receipt-s3-lifecycle.ts",
     "release:verify": "node --env-file=.env --import tsx scripts/verify-release-readiness.ts",
     "maintenance:prune": "node --env-file=.env --import tsx scripts/prune-expired-operational-state.ts",
     "receipts:cloud-smoke": "vitest run src/platform/storage/receipt-cloud.smoke.test.ts",

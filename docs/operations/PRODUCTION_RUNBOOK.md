@@ -23,6 +23,7 @@ Monitor the application and worker using their JSON logs. Alert on:
 - receipt jobs remaining `RUNNING` beyond the worker timeout or exhausting attempts;
 - database connection saturation, storage errors, or Azure throttling/quota events;
 - unexpected growth in failed jobs, expired rate-limit rows, or private receipt objects.
+- billing webhooks left received for more than 15 minutes, failed billing webhooks, paid transactions without statements, payment failures, or failed transactional email deliveries.
 
 Logs may contain store, receipt, job, correlation, and request identifiers needed for operations. They must not contain receipt text, passwords, cookies, authorization headers, API keys, credentials, or presigned URLs. Restrict log access and retention through the hosting platform.
 
@@ -38,6 +39,8 @@ Logs may contain store, receipt, job, correlation, and request identifiers neede
 
 Run `pnpm receipts:retention` first in dry-run mode. Review the eligible count, then run `pnpm receipts:retention -- --execute` from a trusted scheduled worker. The command validates every server-generated object key before deletion, removes only expired receipt photos, marks the file as purged, and preserves receipt lines, confirmations, audit events, sales, and inventory movements.
 
+Install or review the bucket safety net with `pnpm receipts:lifecycle -- --bucket=<existing-private-bucket>`. Only after reviewing the current and resulting rule counts, repeat with `--execute`. The operator needs bucket-scoped lifecycle Get/Put permissions; the application identity does not. Never replace the bucket's unrelated rules by hand.
+
 Schedule `pnpm maintenance:prune` daily to remove expired rate-limit buckets and expired idempotency response caches. It never removes sales, receipts, audit events, inventory movements, or current balances.
 
 ## Incident response
@@ -51,3 +54,5 @@ Schedule `pnpm maintenance:prune` daily to remove expired rate-limit buckets and
 ## Rollback
 
 Application rollback means deploying the last known-good immutable build. Database migrations are forward-only; do not use destructive schema rollback commands. If a migration causes an incident, stop writes, restore an approved snapshot into an isolated database, validate it, and follow the database provider's controlled recovery procedure.
+
+For Xendit incidents, preserve received webhook rows, restore the provider connection or configuration, then redeliver the original test/provider event. Never activate a plan manually from a browser return. For Resend incidents, the owner may use the one-time copy-link fallback; resend creates a new token and revokes the old token. Rotate exposed provider credentials in the provider Dashboard and deployment secret store, redeploy, and record the incident without copying secret values.

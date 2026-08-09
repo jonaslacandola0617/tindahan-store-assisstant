@@ -85,3 +85,11 @@ Structured logging recursively redacts credential, token, cookie, authorization,
 Receipt-photo retention removes validated private storage objects only after the store policy expires, marks file metadata as purged, and preserves receipt, inventory, and audit records. Expired throttle and idempotency caches are pruned separately. Release verification is read-only and reconciles active store ownership, inventory balances against movements, confirmed receipts against confirmations, and confirmed sales against lines.
 
 CI runs on Node.js 22 with an isolated PostgreSQL service. Generated route types, lint, TypeScript, unit/integration tests, migrations, and the production build are mandatory. Operational deployment, monitoring, incident, backup, restore, and rollback procedures are defined in `docs/operations/` and governed by ADR 0014.
+
+## Production billing, email, and retention
+
+The SaaS capability owns provider-neutral billing and email ports. `XenditBillingProvider` and `ResendEmailProvider` are infrastructure adapters selected through validated server configuration; Settings calls authenticated application services and never imports a provider or Prisma. Subscription entitlements depend on internal state, not provider identifiers.
+
+Authenticated Xendit webhooks are persisted before processing and made idempotent by provider event ID. State changes, payment records, statement snapshots, and audit events are transactionally store-scoped. Browser return URLs are informational only. Email sends have independent persisted idempotency keys, so webhook replay cannot duplicate owner notifications.
+
+Receipt photos use exact `retentionUntil` enforcement by the scheduled application command and a receipt-prefix 365-day S3 lifecycle safety rule. A read is denied as soon as the database retention time passes. Neither deletion path removes structured business history.

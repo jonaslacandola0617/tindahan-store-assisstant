@@ -4,7 +4,8 @@ import { database } from "@/platform/persistence/prisma";
 import { serverEnvironment } from "@/platform/environment/server";
 import { resolveStoreContext } from "@/modules/stores/application/store-context";
 import { hashPassword, verifyPassword } from "@/modules/identity/domain/password";
-import { effectivePlanState, mayWriteBusinessData, type PlanState } from "../domain/subscription";
+import { effectivePlanState, entitlementsFor, mayWriteBusinessData, type PlanState } from "../domain/subscription";
+import { deliverEmail, invitationAcceptedEmail, staffInvitationEmail } from "./transactional-email";
 import { passwordChangeInput, settingsInput } from "../domain/settings";
 import { SaasError } from "./errors";
 const inviteInput = z.object({ email: z.string().trim().toLowerCase().email() });
@@ -41,9 +42,9 @@ export async function getSettings(userId: string) {
     database().storePreference.upsert({ where: { storeId: store.id }, update: {}, create: { storeId: store.id } }),
     currentSubscription(store.id),
     database().storeMembership.findMany({ where: { storeId: store.id }, orderBy: { createdAt: "asc" }, select: { id: true, role: true, status: true, user: { select: { name: true, email: true } } } }),
-    role === "OWNER" ? database().staffInvitation.findMany({ where: { storeId: store.id, acceptedAt: null, revokedAt: null, expiresAt: { gt: new Date() } }, orderBy: { createdAt: "desc" }, select: { id: true, email: true, expiresAt: true, createdAt: true } }) : Promise.resolve([]),
+    role === "OWNER" ? database().staffInvitation.findMany({ where: { storeId: store.id, acceptedAt: null, revokedAt: null, expiresAt: { gt: new Date() } }, orderBy: { createdAt: "desc" }, select: { id: true, email: true, expiresAt: true, createdAt: true, emailDeliveries: { orderBy: { createdAt: "desc" }, take: 1, select: { status: true } } } }) : Promise.resolve([]),
   ]);
-  return { role, user, store: { name: store.name, storeType: store.storeType, address: store.address, contact: store.contact }, preference, subscription: { plan: subscription.plan, status: subscription.status, trialEndsAt: subscription.trialEndsAt, currentPeriodEndsAt: subscription.currentPeriodEndsAt, graceEndsAt: subscription.graceEndsAt }, members, invitations };
+  return { role, user, store: { name: store.name, storeType: store.storeType, address: store.address, contact: store.contact }, preference, subscription: { plan: subscription.plan, status: subscription.status, trialEndsAt: subscription.trialEndsAt, currentPeriodEndsAt: subscription.currentPeriodEndsAt, graceEndsAt: subscription.graceEndsAt, onlineBillingAvailable: serverEnvironment.BILLING_PROVIDER === "xendit" || serverEnvironment.BILLING_PROVIDER === "mock" }, members, invitations: invitations.map(invitation => ({ ...invitation, emailStatus: invitation.emailDeliveries[0]?.status ?? null, emailDeliveries: undefined })) };
 }
 
 export async function updateSettings(userId: string, raw: unknown) {
@@ -73,13 +74,25 @@ export async function changePassword(userId: string, raw: unknown) {
 
 export async function inviteStaff(userId: string, origin: string, raw: unknown) {
   const value = inviteInput.parse(raw); const { store, role } = await contextFor(userId); requireOwner(role);
+  const subscription = await currentSubscription(store.id); if (!entitlementsFor(subscription.status as PlanState).staffInvitations) throw new SaasError("PLAN_RESTRICTED", "Staff invitations are paused while the plan needs attention.", 403);
   const existing = await database().storeMembership.findFirst({ where: { storeId: store.id, user: { email: value.email }, status: { in: ["ACTIVE", "INVITED"] } } });
   if (existing) throw new SaasError("ALREADY_MEMBER", "This person already belongs to your store.", 409);
   await database().staffInvitation.updateMany({ where: { storeId: store.id, email: value.email, acceptedAt: null, revokedAt: null }, data: { revokedAt: new Date() } });
   const token = randomBytes(32).toString("base64url");
   const invitation = await database().staffInvitation.create({ data: { storeId: store.id, invitedById: userId, email: value.email, tokenHash: tokenHash(token), expiresAt: new Date(Date.now() + serverEnvironment.STAFF_INVITE_TTL_DAYS * 86_400_000) }, select: { id: true, email: true, expiresAt: true } });
   await database().auditEvent.create({ data: { storeId: store.id, actorId: userId, action: "STAFF_INVITED", entityType: "StaffInvitation", entityId: invitation.id, correlationId: randomUUID(), after: { email: invitation.email, expiresAt: invitation.expiresAt.toISOString() } } });
-  return { ...invitation, inviteUrl: `${origin.replace(/\/$/, "")}/invite/${token}` };
+  const inviter = await database().user.findUniqueOrThrow({ where: { id: userId }, select: { name: true, email: true } });
+  const inviteUrl = `${(serverEnvironment.APP_URL ?? origin).replace(/\/$/, "")}/invite/${token}`;
+  const delivery = await deliverEmail({ storeId: store.id, userId, invitationId: invitation.id, kind: "STAFF_INVITATION", recipient: invitation.email, idempotencyKey: `staff-invitation-${invitation.id}`, email: staffInvitationEmail(store.name, inviter.name || inviter.email, inviteUrl) });
+  return { ...invitation, inviteUrl, emailStatus: delivery.status };
+}
+
+export async function resendStaffInvitation(userId: string, origin: string, invitationId: string) {
+  const { store, role } = await contextFor(userId); requireOwner(role);
+  const previous = await database().staffInvitation.findFirst({ where: { id: invitationId, storeId: store.id, acceptedAt: null, revokedAt: null, expiresAt: { gt: new Date() } }, select: { email: true } });
+  if (!previous) throw new SaasError("NOT_FOUND", "Invitation not found.", 404);
+  await database().staffInvitation.update({ where: { id: invitationId }, data: { revokedAt: new Date() } });
+  return inviteStaff(userId, origin, { email: previous.email });
 }
 
 export async function revokeStaffInvitation(userId: string, invitationId: string) {
@@ -97,7 +110,7 @@ export async function invitationPreview(token: string) {
 
 export async function acceptStaffInvitation(currentUserId: string | null, raw: unknown) {
   const value = acceptInput.parse(raw); const hash = tokenHash(value.token);
-  const invitation = await database().staffInvitation.findUnique({ where: { tokenHash: hash }, include: { store: { select: { name: true } } } });
+  const invitation = await database().staffInvitation.findUnique({ where: { tokenHash: hash }, include: { store: { select: { name: true } }, invitedBy: { select: { id: true, email: true } } } });
   if (!invitation || invitation.acceptedAt || invitation.revokedAt || invitation.expiresAt <= new Date()) throw new SaasError("INVITE_INVALID", "This invitation is no longer available.", 410);
   let passwordHash: string | null = null;
   if (currentUserId) {
@@ -116,5 +129,6 @@ export async function acceptStaffInvitation(currentUserId: string | null, raw: u
     await tx.storeMembership.upsert({ where: { storeId_userId: { storeId: invitation.storeId, userId } }, update: { role: "STAFF", status: "ACTIVE" }, create: { storeId: invitation.storeId, userId, role: "STAFF", status: "ACTIVE" } });
     await tx.auditEvent.create({ data: { storeId: invitation.storeId, actorId: userId, action: "STAFF_INVITATION_ACCEPTED", entityType: "StaffInvitation", entityId: invitation.id, correlationId: randomUUID() } });
   }, { isolationLevel: "Serializable" });
+  await deliverEmail({ storeId: invitation.storeId, userId: invitation.invitedBy.id, invitationId: invitation.id, kind: "STAFF_INVITATION_ACCEPTED", recipient: invitation.invitedBy.email, idempotencyKey: `staff-invitation-accepted-${invitation.id}`, email: invitationAcceptedEmail(invitation.store.name, value.name || invitation.email) });
   return { ok: true, storeName: invitation.store.name, email: invitation.email };
 }

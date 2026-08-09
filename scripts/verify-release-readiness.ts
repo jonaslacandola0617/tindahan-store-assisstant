@@ -5,7 +5,7 @@ async function main() {
   const db = database();
   await db.$queryRaw`SELECT 1`;
 
-  const [balances, movementTotals, storesWithoutOwner, confirmedReceiptsWithoutConfirmation, confirmedSalesWithoutLines, failedJobs, expiredRateLimits] = await Promise.all([
+  const [balances, movementTotals, storesWithoutOwner, confirmedReceiptsWithoutConfirmation, confirmedSalesWithoutLines, failedJobs, expiredRateLimits, failedBillingWebhooks, staleBillingWebhooks, failedEmailDeliveries, paidTransactionsWithoutStatement] = await Promise.all([
     db.inventoryBalance.findMany({ select: { storeId: true, productId: true, quantity: true } }),
     db.inventoryMovement.groupBy({ by: ["storeId", "productId"], _sum: { quantityDelta: true } }),
     db.store.count({ where: { memberships: { none: { role: "OWNER", status: "ACTIVE" } } } }),
@@ -13,6 +13,10 @@ async function main() {
     db.sale.count({ where: { status: "CONFIRMED", lines: { none: {} } } }),
     db.jobRun.count({ where: { status: "FAILED" } }),
     db.rateLimitBucket.count({ where: { expiresAt: { lte: new Date() } } }),
+    db.billingWebhookEvent.count({ where: { status: "FAILED" } }),
+    db.billingWebhookEvent.count({ where: { status: "RECEIVED", receivedAt: { lt: new Date(Date.now() - 15 * 60_000) } } }),
+    db.emailDelivery.count({ where: { status: "FAILED" } }),
+    db.billingTransaction.count({ where: { status: "PAID", statement: null } }),
   ]);
 
   const movementByProduct = new Map(movementTotals.map(row => [`${row.storeId}:${row.productId}`, row._sum.quantityDelta ?? 0]));
@@ -22,9 +26,10 @@ async function main() {
     balanceMismatches: balanceMismatches.length,
     confirmedReceiptsWithoutConfirmation,
     confirmedSalesWithoutLines,
+    paidTransactionsWithoutStatement,
   };
   const passed = Object.values(failures).every(value => value === 0);
-  console.info(JSON.stringify({ status: passed ? "ready" : "failed", checkedAt: new Date().toISOString(), failures, advisory: { failedJobs, expiredRateLimits } }));
+  console.info(JSON.stringify({ status: passed ? "ready" : "failed", checkedAt: new Date().toISOString(), failures, advisory: { failedJobs, expiredRateLimits, failedBillingWebhooks, staleBillingWebhooks, failedEmailDeliveries } }));
   if (!passed) process.exitCode = 1;
 }
 

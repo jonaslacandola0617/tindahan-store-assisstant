@@ -12,6 +12,10 @@ The client requests an upload target from `POST /api/receipts`, uploads directly
 
 Development may explicitly use the signed local adapter. Production requires the already-created private AWS S3 bucket, region, and least-privilege credentials documented in `.env.example`. Leave `RECEIPT_S3_ENDPOINT` blank for normal AWS resolution and keep `RECEIPT_S3_FORCE_PATH_STYLE=false`. Keep Block Public Access enabled, ACLs disabled, bucket-owner-enforced ownership enabled, SSE-S3 enabled, and lifecycle policy consistent with `ReceiptFile.retentionUntil`.
 
+Exact owner-selected photo expiry remains the scheduled `pnpm receipts:retention -- --execute` job. Install the version-controlled 365-day safety rule with `pnpm receipts:lifecycle -- --bucket=<existing-bucket>` to review the merge, then repeat with `--execute`. The script preserves unrelated rules and only owns `tindahan-receipt-photo-safety-expiration-v1`. It uses the operator credential chain; the web application's least-privilege identity does not need `s3:GetLifecycleConfiguration` or `s3:PutLifecycleConfiguration`. If an operator role is created for this one task, scope those actions to the existing receipt bucket only.
+
+S3 rounds lifecycle expiration to the next midnight UTC and the rule also applies to already-eligible matching objects. The application therefore stops signing reads as soon as `retentionUntil` passes, even before the scheduled database reconciliation marks `purgedAt`. Physical deletion never removes structured receipt, confirmation, audit, sale, or inventory history.
+
 The application uses `PutObject`, `GetObject`, `HeadObject` (authorized by object read access), and approved cleanup through `DeleteObject`. It never creates/lists/deletes buckets or administers IAM. Application operation does not require object ACL permissions. `ListBucket` is not used by the adapter; if retained in the existing bucket policy, scope it to this bucket and the configured receipt prefix.
 
 ## Jobs and extraction

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { effectivePlanState, mayWriteBusinessData } from "./subscription";
+import { effectivePlanState, entitlementsFor, mayWriteBusinessData } from "./subscription";
 
 describe("subscription policy", () => {
   const now = new Date("2026-08-09T00:00:00Z");
@@ -12,5 +12,8 @@ describe("subscription policy", () => {
     expect(mayWriteBusinessData("GRACE")).toBe(true);
     expect(mayWriteBusinessData("RESTRICTED")).toBe(false);
     expect(mayWriteBusinessData("CANCELED")).toBe(false);
+  });
+  it("keeps reports and exports available while restricting paid mutations", () => {
+    expect(entitlementsFor("RESTRICTED")).toEqual({ mayWrite: false, receiptIntelligence: false, staffInvitations: false, reports: true, exports: true });
   });
 });

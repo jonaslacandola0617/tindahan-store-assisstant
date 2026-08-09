@@ -60,6 +60,14 @@ describe("server environment", () => {
       AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: "https://receipt-ai.example.test/",
       AZURE_DOCUMENT_INTELLIGENCE_API_KEY: "test-api-key",
       AZURE_DOCUMENT_INTELLIGENCE_API_VERSION: "2024-11-30",
+      APP_URL: "https://tindahan.example.test",
+      BILLING_PROVIDER: "xendit",
+      BILLING_STANDARD_MONTHLY_AMOUNT_PHP: "499",
+      XENDIT_SECRET_KEY: "xnd_development_secret",
+      XENDIT_WEBHOOK_TOKEN: "xendit-callback-token",
+      EMAIL_PROVIDER: "resend",
+      RESEND_API_KEY: "re_development_key",
+      RESEND_FROM_EMAIL: "notifications@tindahan.example.test",
     });
     expect(environment.RECEIPT_S3_ENDPOINT).toBeUndefined();
     expect(environment.RECEIPT_S3_BUCKET).toBe("private-receipts");
@@ -106,6 +114,12 @@ describe("server environment", () => {
     expect(environment.STAFF_INVITE_TTL_DAYS).toBe(7);
     expect(() => parseServerEnvironment({ NODE_ENV: "test", TRIAL_DAYS: "0" })).toThrow();
     expect(() => parseServerEnvironment({ NODE_ENV: "test", STAFF_INVITE_TTL_DAYS: "365" })).toThrow();
+  });
+
+  it("requires complete Xendit and Resend settings when selected", () => {
+    expect(() => parseServerEnvironment({ NODE_ENV: "development", BILLING_PROVIDER: "xendit" })).toThrow("Xendit billing");
+    expect(() => parseServerEnvironment({ NODE_ENV: "development", EMAIL_PROVIDER: "resend" })).toThrow("Resend email");
+    expect(() => parseServerEnvironment({ NODE_ENV: "development", BILLING_TAX_ENABLED: "true", BILLING_TAX_RATE_BPS: "0" })).toThrow("BILLING_TAX_RATE_BPS");
   });
 
   it("requires shared database rate limiting in a production runtime", () => {

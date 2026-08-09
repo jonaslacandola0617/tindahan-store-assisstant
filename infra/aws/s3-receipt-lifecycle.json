@@ -1,0 +1,11 @@
+{
+  "Rules": [
+    {
+      "ID": "tindahan-receipt-photo-safety-expiration-v1",
+      "Status": "Enabled",
+      "Filter": { "Prefix": "receipts/" },
+      "Expiration": { "Days": 365 },
+      "AbortIncompleteMultipartUpload": { "DaysAfterInitiation": 1 }
+    }
+  ]
+}

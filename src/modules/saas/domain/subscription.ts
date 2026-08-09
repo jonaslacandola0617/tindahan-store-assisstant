@@ -16,3 +16,16 @@ export function effectivePlanState(input: {
 export function mayWriteBusinessData(status: PlanState) {
   return status === "TRIALING" || status === "ACTIVE" || status === "GRACE";
 }
+
+export type Entitlements = {
+  mayWrite: boolean;
+  receiptIntelligence: boolean;
+  staffInvitations: boolean;
+  reports: boolean;
+  exports: boolean;
+};
+
+export function entitlementsFor(status: PlanState): Entitlements {
+  const mayWrite = mayWriteBusinessData(status);
+  return { mayWrite, receiptIntelligence: mayWrite, staffInvitations: mayWrite, reports: true, exports: true };
+}

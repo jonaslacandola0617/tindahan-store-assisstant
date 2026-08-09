@@ -48,6 +48,26 @@ enum SubscriptionStatus {
   CANCELED
 }
 
+enum BillingTransactionStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELED
+}
+
+enum BillingWebhookStatus {
+  RECEIVED
+  PROCESSED
+  IGNORED
+  FAILED
+}
+
+enum EmailDeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
 enum ProductStatus {
   ACTIVE
   ARCHIVED
@@ -190,6 +210,7 @@ model User {
   auditEvents       AuditEvent[] @relation("AuditActor")
   saleCorrections   SaleCorrection[] @relation("SaleCorrectionActor")
   staffInvitations  StaffInvitation[] @relation("StaffInvitationInviter")
+  emailDeliveries   EmailDelivery[]
 }
 
 model Account {
@@ -265,6 +286,11 @@ model Store {
   subscription StoreSubscription?
   staffInvitations StaffInvitation[]
   rateLimitBuckets RateLimitBucket[]
+  billingCustomer BillingCustomer?
+  billingTransactions BillingTransaction[]
+  billingStatements BillingStatement[]
+  billingWebhookEvents BillingWebhookEvent[]
+  emailDeliveries EmailDelivery[]
 }
 
 model StoreMembership {
@@ -304,10 +330,92 @@ model StoreSubscription {
   graceEndsAt            DateTime?
   externalCustomerId     String?
   externalSubscriptionId String?
+  provider                String @default("manual")
+  currentPeriodStartsAt   DateTime?
+  canceledAt              DateTime?
+  lastProviderEventAt     DateTime?
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
   store                  Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  transactions           BillingTransaction[]
+  statements             BillingStatement[]
   @@index([status, trialEndsAt])
+}
+
+model BillingCustomer {
+  id                 String @id @default(cuid())
+  storeId            String @unique
+  provider           String
+  providerCustomerId String
+  billingName        String
+  billingEmail       String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  store              Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerCustomerId])
+}
+
+model BillingTransaction {
+  id                    String @id @default(cuid())
+  storeId               String
+  subscriptionId        String
+  provider              String
+  providerTransactionId String
+  status                BillingTransactionStatus @default(PENDING)
+  amount                Decimal @db.Decimal(12, 2)
+  currency              String @default("PHP")
+  periodStartsAt        DateTime?
+  periodEndsAt          DateTime?
+  paidAt                DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  store                 Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  subscription          StoreSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+  statement             BillingStatement?
+  @@unique([provider, providerTransactionId])
+  @@index([storeId, createdAt])
+}
+
+model BillingStatement {
+  id                 String @id @default(cuid())
+  statementNumber    String @unique
+  storeId            String
+  subscriptionId     String
+  transactionId      String? @unique
+  plan               PlanCode
+  currency           String @default("PHP")
+  subtotal            Decimal @db.Decimal(12, 2)
+  tax                 Decimal @db.Decimal(12, 2)
+  total               Decimal @db.Decimal(12, 2)
+  lineItems           Json
+  taxSnapshot         Json
+  periodStartsAt      DateTime?
+  periodEndsAt        DateTime?
+  paymentStatus       BillingTransactionStatus
+  providerReference  String?
+  paidAt              DateTime?
+  createdAt           DateTime @default(now())
+  store               Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  subscription        StoreSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+  transaction         BillingTransaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  @@index([storeId, createdAt])
+}
+
+model BillingWebhookEvent {
+  id                String @id @default(cuid())
+  provider          String
+  providerEventId   String
+  eventType         String
+  payloadHash       String
+  status            BillingWebhookStatus @default(RECEIVED)
+  storeId           String?
+  errorCode         String?
+  providerCreatedAt DateTime?
+  receivedAt        DateTime @default(now())
+  processedAt       DateTime?
+  store             Store? @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  @@unique([provider, providerEventId])
+  @@index([status, receivedAt])
 }
 
 model StaffInvitation {
@@ -323,8 +431,30 @@ model StaffInvitation {
   createdAt   DateTime @default(now())
   store       Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
   invitedBy   User @relation("StaffInvitationInviter", fields: [invitedById], references: [id], onDelete: Restrict)
+  emailDeliveries EmailDelivery[]
   @@index([storeId, email, createdAt])
   @@index([storeId, expiresAt])
+}
+
+model EmailDelivery {
+  id                String @id @default(cuid())
+  storeId           String
+  userId            String?
+  invitationId      String?
+  kind              String
+  recipient         String
+  provider          String
+  providerMessageId String?
+  idempotencyKey    String @unique
+  status            EmailDeliveryStatus @default(PENDING)
+  failureCode       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  store             Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  user              User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  invitation        StaffInvitation? @relation(fields: [invitationId], references: [id], onDelete: SetNull)
+  @@index([storeId, createdAt])
+  @@index([invitationId, createdAt])
 }
 
 model Category {

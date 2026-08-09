@@ -10,6 +10,7 @@ if (!email || !statuses.includes(requested as typeof statuses[number])) throw ne
 
 async function main() {
   const db = database();
+  if (billingProvider().id !== "manual") throw new Error("Pilot transitions are disabled while online billing is configured.");
   const membership = await db.storeMembership.findFirst({ where: { role: "OWNER", status: "ACTIVE", user: { email } }, include: { store: true } });
   if (!membership) throw new Error("No active owner store was found for that email.");
   const transition = billingProvider().validateTransition({ status: requested as typeof statuses[number] });

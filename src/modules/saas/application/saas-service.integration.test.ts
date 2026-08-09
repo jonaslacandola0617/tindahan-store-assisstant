@@ -15,7 +15,7 @@ databaseTests("Phase 7 staff invitation integration", () => {
     const owner = await database().user.create({ data: { email: ownerEmail, name: "Phase Seven Owner", passwordHash: await hashPassword("Tindahan-Phase7!") } }); ownerId = owner.id;
     const store = await database().store.create({ data: { name: "Phase Seven Store", memberships: { create: { userId: owner.id, role: "OWNER", status: "ACTIVE" } }, preference: { create: {} }, subscription: { create: { plan: "PILOT", status: "ACTIVE" } } } }); storeId = store.id;
   });
-  afterAll(async () => { if (storeId) { await database().auditEvent.deleteMany({ where: { storeId } }); await database().store.deleteMany({ where: { id: storeId } }); } if (staffId) await database().user.deleteMany({ where: { id: staffId } }); if (ownerId) await database().user.deleteMany({ where: { id: ownerId } }); });
+  afterAll(async () => { if (storeId) { await database().emailDelivery.deleteMany({ where: { storeId } }); await database().auditEvent.deleteMany({ where: { storeId } }); await database().store.deleteMany({ where: { id: storeId } }); } if (staffId) await database().user.deleteMany({ where: { id: staffId } }); if (ownerId) await database().user.deleteMany({ where: { id: ownerId } }); });
 
   it("stores only a token hash and accepts a store-scoped invitation once", async () => {
     const invited = await inviteStaff(ownerId, "https://tindahan.example.test", { email: staffEmail });
@@ -23,6 +23,7 @@ databaseTests("Phase 7 staff invitation integration", () => {
     expect((await invitationPreview(token)).email).toBe(staffEmail);
     const stored = await database().staffInvitation.findUniqueOrThrow({ where: { id: invited.id } });
     expect(stored.tokenHash).not.toContain(token);
+    expect(await database().emailDelivery.findFirst({ where: { invitationId: invited.id }, select: { status: true, provider: true } })).toEqual({ status: "SENT", provider: "mock" });
     const accepted = await acceptStaffInvitation(null, { token, name: "Phase Seven Staff", password: "Tindahan-Staff-2026!" });
     expect(accepted.storeName).toBe("Phase Seven Store");
     const member = await database().storeMembership.findFirstOrThrow({ where: { storeId, user: { email: staffEmail } } }); staffId = member.userId;

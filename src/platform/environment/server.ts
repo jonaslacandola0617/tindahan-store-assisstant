@@ -19,7 +19,18 @@ const schema = z.object({
   AUTH_DEMO_MODE: z.enum(["true", "false"]).default("false"),
   DEMO_EMAIL: z.string().email().default("rosa@tindahan.local"),
   DEMO_PASSWORD: z.string().min(8).default("tindahan123"),
-  BILLING_PROVIDER: z.enum(["manual"]).default("manual"),
+  APP_URL: optionalUrl,
+  BILLING_PROVIDER: z.enum(["manual", "mock", "xendit"]).default("manual"),
+  BILLING_STANDARD_MONTHLY_AMOUNT_PHP: z.coerce.number().int().positive().max(1_000_000).optional(),
+  XENDIT_SECRET_KEY: optionalText,
+  XENDIT_WEBHOOK_TOKEN: optionalText,
+  BILLING_TAX_ENABLED: z.enum(["true", "false"]).default("false"),
+  BILLING_TAX_RATE_BPS: z.coerce.number().int().min(0).max(10_000).default(0),
+  BILLING_TAX_LABEL: z.string().trim().min(1).max(40).default("Tax"),
+  EMAIL_PROVIDER: z.enum(["mock", "resend"]).default("mock"),
+  RESEND_API_KEY: optionalText,
+  RESEND_FROM_EMAIL: z.preprocess(blankToUndefined, z.string().email().optional()),
+  RESEND_FROM_NAME: z.string().trim().min(1).max(100).default("Tindahan"),
   TRIAL_DAYS: z.coerce.number().int().min(1).max(90).default(30),
   BILLING_GRACE_DAYS: z.coerce.number().int().min(1).max(30).default(7),
   STAFF_INVITE_TTL_DAYS: z.coerce.number().int().min(1).max(30).default(7),
@@ -69,7 +80,15 @@ export function parseServerEnvironment(source: NodeJS.ProcessEnv): ServerEnviron
   if (productionRuntime && value.RATE_LIMIT_PROVIDER !== "database") {
     throw new Error("RATE_LIMIT_PROVIDER must be database in production.");
   }
-
+  if (value.BILLING_PROVIDER === "xendit" && (!value.XENDIT_SECRET_KEY || !value.XENDIT_WEBHOOK_TOKEN || !value.BILLING_STANDARD_MONTHLY_AMOUNT_PHP || !value.APP_URL)) {
+    throw new Error("Xendit billing configuration is incomplete.");
+  }
+  if (value.BILLING_TAX_ENABLED === "true" && value.BILLING_TAX_RATE_BPS <= 0) {
+    throw new Error("BILLING_TAX_RATE_BPS must be positive when billing tax is enabled.");
+  }
+  if (value.EMAIL_PROVIDER === "resend" && (!value.RESEND_API_KEY || !value.RESEND_FROM_EMAIL || !value.APP_URL)) {
+    throw new Error("Resend email configuration is incomplete.");
+  }
   if (productionRuntime && (!value.DATABASE_URL || (!lambdaRuntime && !value.NEXTAUTH_SECRET))) {
     throw new Error(lambdaRuntime ? "DATABASE_URL is required in the Lambda worker." : "DATABASE_URL and NEXTAUTH_SECRET are required in production.");
   }
@@ -98,6 +117,9 @@ export function parseServerEnvironment(source: NodeJS.ProcessEnv): ServerEnviron
   }
   if (productionRuntime && value.RECEIPT_JOB_PROVIDER === "webhook" && (!value.RECEIPT_JOB_WAKE_URL || !value.RECEIPT_JOB_SECRET)) {
     throw new Error("Receipt job webhook configuration is incomplete.");
+  }
+  if (productionRuntime && !lambdaRuntime && (value.BILLING_PROVIDER !== "xendit" || value.EMAIL_PROVIDER !== "resend")) {
+    throw new Error("Production requires Xendit billing and Resend transactional email.");
   }
 
   return { ...value, demoMode };
