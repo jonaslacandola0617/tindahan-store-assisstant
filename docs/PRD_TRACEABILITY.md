@@ -34,7 +34,7 @@ Status values: `implemented` means present and verified in the production applic
 | Store-scoped global search | 6 | Search | implemented | PostgreSQL product/search isolation integration test; progressive and empty-state browser audit | Active products plus store-owned categories, suppliers, and receipt history use bounded PostgreSQL search. |
 | Trial/paid plan and billing adapter | 7 | Billing | implemented | subscription state unit tests; restricted-store integration test; production build | Provider-neutral manual pilot adapter, configurable trial/grace durations, audited operator transition command; no fake checkout. |
 | Staff management and owner-only settings | 7 | Stores/Billing | implemented | invitation acceptance/replay/revocation and Staff settings integration tests; desktop/mobile browser audit | Expiring hashed invitation tokens; owner-only store, notification, retention, team, and plan controls; Staff account preferences remain self-service. |
-| Security, accessibility, performance, backup/recovery audit | 8 | Platform/QA | planned | full hardening suite | Baselines begin in Phase 1. |
+| Security, accessibility, performance, backup/recovery audit | 8 | Platform/QA | implemented | database rate-limit, redaction, release-contract and stale-session tests; full suite; production build; browser journey audit; release verifier; deployment runbooks | Shared abuse controls, private-photo retention, readiness, CI, dependency remediation, and restore/incident procedures are complete; deployment-account backup and alert configuration remains an operator responsibility. |
 
 ## Cross-cutting loading feedback
 

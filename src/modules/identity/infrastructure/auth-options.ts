@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { database } from "@/platform/persistence/prisma";
 import { serverEnvironment } from "@/platform/environment/server";
 import { verifyPassword } from "../domain/password";
+import { clearRateLimit, consumeRateLimit } from "@/platform/security/rate-limit";
 
 export const authOptions: NextAuthOptions = {
   secret: serverEnvironment.NEXTAUTH_SECRET ?? "development-only-tindahan-secret-change-me",
@@ -17,14 +18,20 @@ export const authOptions: NextAuthOptions = {
         const password = credentials?.password;
         if (!email || !password) return null;
 
+        const rate = await consumeRateLimit("credential-sign-in", email, 8, 15 * 60_000);
+        if (!rate.allowed) return null;
+
         if (serverEnvironment.demoMode) {
-          return email === serverEnvironment.DEMO_EMAIL && password === serverEnvironment.DEMO_PASSWORD
-            ? { id: "demo-owner", email, name: "Rosa Santos" }
-            : null;
+          if (email === serverEnvironment.DEMO_EMAIL && password === serverEnvironment.DEMO_PASSWORD) {
+            await clearRateLimit("credential-sign-in", email);
+            return { id: "demo-owner", email, name: "Rosa Santos" };
+          }
+          return null;
         }
 
         const user = await database().user.findUnique({ where: { email } });
         if (!user?.passwordHash || !(await verifyPassword(password, user.passwordHash))) return null;
+        await clearRateLimit("credential-sign-in", email);
         return { id: user.id, email: user.email, name: user.name };
       },
     }),

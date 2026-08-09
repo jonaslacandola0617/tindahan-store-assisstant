@@ -7,7 +7,7 @@ Tindahan is a Store Operating Assistant for independent Philippine retailers. Th
 
 ## Production application
 
-Requirements: Node.js 20.19 or newer, pnpm, and PostgreSQL.
+Requirements: Node.js 22 or 24, pnpm 11, and PostgreSQL.
 
 1. Copy `.env.example` to `.env` and replace every required value. Prisma reads `.env`; Next.js also loads it.
 2. Install dependencies with `pnpm install`.
@@ -46,5 +46,15 @@ For UI-only development without PostgreSQL, set `AUTH_DEMO_MODE=true` and provid
 - `pnpm typecheck`
 - `pnpm test`
 - `pnpm build`
+
+## Release and operations
+
+- `pnpm release:verify` performs read-only tenant and ledger integrity checks against the configured database.
+- `pnpm receipts:retention` previews expired private receipt photos; add `-- --execute` only after reviewing the dry-run counts.
+- `pnpm maintenance:prune` removes expired rate-limit and completed idempotency cache records.
+- `/api/health` is the liveness endpoint. `/api/ready` also verifies database readiness.
+- Production must use `RATE_LIMIT_PROVIDER=database`; memory throttling is test-only.
+
+Use `docs/operations/DEPLOYMENT_CHECKLIST.md` for deployment and `docs/operations/PRODUCTION_RUNBOOK.md` for monitoring, incidents, backup/restore drills, retention, and rollback.
 
 Architecture, phased delivery, traceability, and decisions are documented in `docs/`.

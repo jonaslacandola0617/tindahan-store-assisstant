@@ -23,6 +23,7 @@ const schema = z.object({
   TRIAL_DAYS: z.coerce.number().int().min(1).max(90).default(30),
   BILLING_GRACE_DAYS: z.coerce.number().int().min(1).max(30).default(7),
   STAFF_INVITE_TTL_DAYS: z.coerce.number().int().min(1).max(30).default(7),
+  RATE_LIMIT_PROVIDER: z.enum(["database", "memory"]).default("database"),
   RECEIPT_STORAGE_PROVIDER: z.enum(["local", "aws", "s3"]).default("local"),
   RECEIPT_STORAGE_DIR: z.string().default(".tindahan-private/receipts"),
   RECEIPT_S3_ENDPOINT: optionalUrl,
@@ -64,6 +65,9 @@ export function parseServerEnvironment(source: NodeJS.ProcessEnv): ServerEnviron
 
   if (productionRuntime && demoMode) {
     throw new Error("AUTH_DEMO_MODE cannot be enabled in production.");
+  }
+  if (productionRuntime && value.RATE_LIMIT_PROVIDER !== "database") {
+    throw new Error("RATE_LIMIT_PROVIDER must be database in production.");
   }
 
   if (productionRuntime && (!value.DATABASE_URL || (!lambdaRuntime && !value.NEXTAUTH_SECRET))) {

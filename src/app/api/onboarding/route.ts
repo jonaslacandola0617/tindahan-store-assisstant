@@ -3,11 +3,14 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { createStoreForOwner } from "@/modules/stores/application/create-store";
 import { authOptions } from "@/modules/identity/infrastructure/auth-options";
+import { registeredUserExists } from "@/modules/identity/application/registered-user";
 import { serverEnvironment } from "@/platform/environment/server";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user.id) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+  if (!session?.user.id || !(await registeredUserExists(session.user.id))) {
+    return NextResponse.json({ error: "Your session has expired. Sign in again." }, { status: 401 });
+  }
   if (serverEnvironment.demoMode) return NextResponse.json({ store: { id: "demo-store", name: "Aling Rosa's Store" } }, { status: 201 });
   try {
     const store = await createStoreForOwner(session.user.id, await request.json());

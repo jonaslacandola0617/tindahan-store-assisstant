@@ -5,6 +5,7 @@ try { process.loadEnvFile(".env"); } catch (error) { if ((error as NodeJS.ErrnoE
 // The normal suite is deterministic and must never contact paid cloud providers.
 process.env.RECEIPT_STORAGE_PROVIDER = "local";
 process.env.RECEIPT_OCR_PROVIDER = "mock";
+process.env.RATE_LIMIT_PROVIDER = "memory";
 const testDatabaseUrl = process.env.TEST_DATABASE_URL ?? process.env.TEST_DATABASE;
 
 if (testDatabaseUrl) {

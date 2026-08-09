@@ -47,3 +47,5 @@ Status: complete on 2026-08-09. See `docs/reports/PHASE_7_REPORT.md`.
 ## Phase 8 — release hardening
 
 Complete tenant, authorization, concurrency, idempotency, accessibility, responsive, performance, index, upload-abuse, backup/recovery, deployment, monitoring, and end-to-end audits.
+
+Status: complete on 2026-08-09. See `docs/reports/PHASE_8_REPORT.md`.

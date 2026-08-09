@@ -107,4 +107,13 @@ describe("server environment", () => {
     expect(() => parseServerEnvironment({ NODE_ENV: "test", TRIAL_DAYS: "0" })).toThrow();
     expect(() => parseServerEnvironment({ NODE_ENV: "test", STAFF_INVITE_TTL_DAYS: "365" })).toThrow();
   });
+
+  it("requires shared database rate limiting in a production runtime", () => {
+    expect(() => parseServerEnvironment({
+      NODE_ENV: "production",
+      RATE_LIMIT_PROVIDER: "memory",
+      DATABASE_URL: "postgresql://runtime.example.test/tindahan",
+      NEXTAUTH_SECRET: "production-secret-that-is-long-enough",
+    })).toThrow("RATE_LIMIT_PROVIDER");
+  });
 });

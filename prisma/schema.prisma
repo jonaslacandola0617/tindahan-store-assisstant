@@ -264,6 +264,7 @@ model Store {
   jobRuns JobRun[]
   subscription StoreSubscription?
   staffInvitations StaffInvitation[]
+  rateLimitBuckets RateLimitBucket[]
 }
 
 model StoreMembership {
@@ -581,10 +582,12 @@ model ReceiptFile {
   uploadedAt DateTime?
   validatedAt DateTime?
   retentionUntil DateTime?
+  purgedAt DateTime?
   createdAt DateTime @default(now())
   store     Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
   receipt   Receipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
   @@index([storeId, sha256])
+  @@index([retentionUntil, purgedAt])
 }
 
 model ReceiptExtraction {
@@ -807,4 +810,19 @@ model JobRun {
   @@index([storeId, status, nextRetryAt])
   @@index([receiptId])
   @@unique([storeId, externalId])
+}
+
+model RateLimitBucket {
+  id        String   @id @default(cuid())
+  storeId   String?
+  keyHash   String   @unique
+  scope     String
+  count     Int      @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  store     Store?   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([scope, expiresAt])
+  @@index([storeId, expiresAt])
 }

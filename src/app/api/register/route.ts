@@ -3,9 +3,12 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { registerUser } from "@/modules/identity/application/register-user";
 import { serverEnvironment } from "@/platform/environment/server";
+import { requestRateLimit } from "@/platform/security/request-guard";
 
 export async function POST(request: Request) {
   if (serverEnvironment.demoMode) return NextResponse.json({ error: "Registration is disabled in demo mode." }, { status: 409 });
+  const limited = await requestRateLimit(request, "account-registration", 10, 60 * 60_000);
+  if (limited) return limited;
   try {
     const user = await registerUser(await request.json());
     return NextResponse.json({ user }, { status: 201 });

@@ -75,3 +75,13 @@ Secure HttpOnly session cookies are owned by Auth.js. Passwords use Node's scryp
 ## Observability
 
 Each request receives or propagates a correlation ID. Structured logs include level, event, correlation ID, actor/store identifiers when safe, and sanitized metadata. Business-critical operations later record AuditEvent and IdempotencyKey rows.
+
+## Release hardening
+
+Production abuse controls use PostgreSQL fixed-window buckets keyed by SHA-256 digests, so limits are shared across application instances without persisting raw emails or request-derived subjects. The memory provider is test-only. Authentication and high-risk mutation routes use bounded limits and `Retry-After` responses.
+
+Structured logging recursively redacts credential, token, cookie, authorization, signed-URL, and provider-secret fields. Liveness (`/api/health`) is intentionally independent from database readiness (`/api/ready`). Security headers are emitted by Next.js configuration, with transport upgrades and HSTS enabled only in production.
+
+Receipt-photo retention removes validated private storage objects only after the store policy expires, marks file metadata as purged, and preserves receipt, inventory, and audit records. Expired throttle and idempotency caches are pruned separately. Release verification is read-only and reconciles active store ownership, inventory balances against movements, confirmed receipts against confirmations, and confirmed sales against lines.
+
+CI runs on Node.js 22 with an isolated PostgreSQL service. Generated route types, lint, TypeScript, unit/integration tests, migrations, and the production build are mandatory. Operational deployment, monitoring, incident, backup, restore, and rollback procedures are defined in `docs/operations/` and governed by ADR 0014.

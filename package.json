@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=22 <25"
   },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "prisma generate",
@@ -24,6 +24,9 @@
     "receipts:worker": "node --env-file=.env --import tsx scripts/receipt-worker.ts",
     "receipts:worker:once": "node --env-file=.env --import tsx scripts/receipt-worker.ts --once",
     "receipts:fixtures": "node --experimental-strip-types scripts/create-receipt-fixtures.mts",
+    "receipts:retention": "node --env-file=.env --import tsx scripts/enforce-receipt-retention.ts",
+    "release:verify": "node --env-file=.env --import tsx scripts/verify-release-readiness.ts",
+    "maintenance:prune": "node --env-file=.env --import tsx scripts/prune-expired-operational-state.ts",
     "receipts:cloud-smoke": "vitest run src/platform/storage/receipt-cloud.smoke.test.ts",
     "lambda:receipt:build": "node scripts/build-receipt-lambda.mjs",
     "lambda:receipt:package": "node scripts/build-receipt-lambda.mjs",
@@ -31,32 +34,32 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1101.0",
-    "@aws-sdk/s3-request-presigner": "^3.1101.0",
+    "@aws-sdk/client-s3": "^3.1106.0",
+    "@aws-sdk/s3-request-presigner": "^3.1106.0",
     "@prisma/adapter-pg": "7.9.1",
     "@prisma/client": "7.9.1",
     "@zxing/browser": "^0.2.1",
-    "next": "16.2.12",
+    "next": "16.3.0",
     "next-auth": "4.24.15",
     "pg": "^8.16.3",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "react-hook-form": "^7.62.0",
+    "react-hook-form": "^7.85.0",
     "zod": "^4.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.0",
     "@types/node": "^24.0.0",
     "@types/pg": "^8.15.5",
-    "@types/react": "^19.2.0",
-    "@types/react-dom": "^19.2.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
     "esbuild": "^0.28.1",
     "eslint": "^9.0.0",
-    "eslint-config-next": "16.2.12",
+    "eslint-config-next": "16.3.0",
     "fflate": "^0.8.3",
     "prisma": "7.9.1",
     "tailwindcss": "^4.1.0",
-    "tsx": "^4.20.0",
+    "tsx": "^4.23.11",
     "typescript": "^5.9.0",
     "vitest": "^3.2.0"
   }

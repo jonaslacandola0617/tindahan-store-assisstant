@@ -1,9 +1,9 @@
 import { getServerSession } from "next-auth";
-import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { authOptions } from "@/modules/identity/infrastructure/auth-options";
 import { logger } from "@/platform/logging/logger";
 import { ReceiptError } from "../application/errors";
+import { requestId, responseWithRequestId } from "@/platform/logging/request-context";
 
 export async function receiptUserId() {
   const session = await getServerSession(authOptions);
@@ -24,8 +24,9 @@ export function receiptDatabaseErrorContext(error: unknown) {
 }
 
 export function receiptHttpError(error: unknown, correlationId?: string) {
-  if (error instanceof ReceiptError) return NextResponse.json({ error: error.message, code: error.code, details: error.details }, { status: error.status });
-  if (error instanceof ZodError) return NextResponse.json({ error: "Check the information and try again.", code: "VALIDATION", fields: error.flatten().fieldErrors }, { status: 400 });
-  logger.error("receipt_request_failed", { correlationId, ...receiptDatabaseErrorContext(error) });
-  return NextResponse.json({ error: "We couldn't complete that receipt request. Nothing was changed. Try again.", code: "UNEXPECTED" }, { status: 500 });
+  const id = correlationId ?? requestId();
+  if (error instanceof ReceiptError) return responseWithRequestId({ error: error.message, code: error.code, details: error.details }, { status: error.status }, id);
+  if (error instanceof ZodError) return responseWithRequestId({ error: "Check the information and try again.", code: "VALIDATION", fields: error.flatten().fieldErrors }, { status: 400 }, id);
+  logger.error("receipt_request_failed", { requestId: id, ...receiptDatabaseErrorContext(error) });
+  return responseWithRequestId({ error: "We couldn't complete that receipt request. Nothing was changed. Try again.", code: "UNEXPECTED" }, { status: 500 }, id);
 }

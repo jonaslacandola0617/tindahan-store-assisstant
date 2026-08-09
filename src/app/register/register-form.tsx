@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { accountSetupInput } from "@/modules/identity/domain/registration";
 import type { Locale } from "@/modules/i18n/messages";
@@ -24,6 +25,7 @@ const copy = {
 type Errors = { email?: string; password?: string; confirmPassword?: string };
 
 export function RegisterForm({ locale }: { locale: Locale }) {
+  const router = useRouter();
   const text = copy[locale];
   const [error, setError] = useState("");
   const [errors, setErrors] = useState<Errors>({});
@@ -50,7 +52,7 @@ export function RegisterForm({ locale }: { locale: Locale }) {
     }
 
     sessionStorage.setItem("tindahan-setup-credentials", JSON.stringify({ email: result.data.email, password: result.data.password }));
-    window.location.assign("/onboarding");
+    router.push("/onboarding");
   }
 
   const clear = (field: keyof Errors) => setErrors(current => ({ ...current, [field]: undefined }));

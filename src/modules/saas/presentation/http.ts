@@ -1,8 +1,9 @@
 import { getServerSession } from "next-auth";
-import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { authOptions } from "@/modules/identity/infrastructure/auth-options";
 import { SaasError } from "../application/errors";
+import { logger } from "@/platform/logging/logger";
+import { requestId, responseWithRequestId } from "@/platform/logging/request-context";
 
 export async function authenticatedUserId() {
   const session = await getServerSession(authOptions);
@@ -11,8 +12,9 @@ export async function authenticatedUserId() {
 }
 
 export function saasHttpError(error: unknown) {
-  if (error instanceof SaasError) return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
-  if (error instanceof ZodError) return NextResponse.json({ error: "Check the highlighted details.", code: "VALIDATION", fields: error.flatten().fieldErrors }, { status: 400 });
-  console.error("SaaS settings request failed", error instanceof Error ? error.name : "unknown");
-  return NextResponse.json({ error: "We couldn't complete that request. Nothing was changed.", code: "UNEXPECTED" }, { status: 500 });
+  const id = requestId();
+  if (error instanceof SaasError) return responseWithRequestId({ error: error.message, code: error.code }, { status: error.status }, id);
+  if (error instanceof ZodError) return responseWithRequestId({ error: "Check the highlighted details.", code: "VALIDATION", fields: error.flatten().fieldErrors }, { status: 400 }, id);
+  logger.error("saas_request_failed", { requestId: id, error });
+  return responseWithRequestId({ error: "We couldn't complete that request. Nothing was changed.", code: "UNEXPECTED" }, { status: 500 }, id);
 }
