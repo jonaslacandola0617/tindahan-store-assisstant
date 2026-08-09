@@ -4,7 +4,10 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
 import { Icon } from "@/components/icon";
-import type { Locale } from "@/modules/i18n/messages";
+import { LoadingButtonContent } from "@/components/loading";
+import { registrationInput } from "@/modules/identity/domain/registration";
+import { loadingCopy, type Locale } from "@/modules/i18n/messages";
+import { storeInput, storeTypes } from "@/modules/stores/domain/store";
 
 const copy = {
   EN: {
@@ -16,6 +19,9 @@ const copy = {
     currency: "Amounts are shown in Philippine Peso (₱).", title3: "You're all set", intro3: "Here's what to do first.",
     scan: "Scan your first receipt", inventory: "Look through your inventory", sale: "Record your first sale",
     back: "Back", continue: "Continue", finish: "Go to my dashboard",
+    storeNameError: "Enter a store name with at least 2 characters.", ownerNameError: "Enter your name with at least 2 characters.",
+    credentialsError: "Your account details are missing or invalid. Return to account creation and try again.",
+    setupError: "We couldn't finish setting up your store. Nothing was changed. Try again.", signInError: "Your store was created, but automatic sign-in failed. Sign in to continue.", signInAction: "Go to sign in", createAccountAction: "Create account",
   },
   FIL: {
     title1: "Ikwento ang tungkol sa iyong tindahan", intro1: "Makakatulong ito para maangkop ang Tindahan sa iyong tindahan.",
@@ -26,6 +32,9 @@ const copy = {
     currency: "Ipinapakita ang halaga sa Philippine Peso (₱).", title3: "Handa ka na", intro3: "Ito ang unang dapat gawin.",
     scan: "I-scan ang una mong resibo", inventory: "Tingnan ang iyong imbentaryo", sale: "Itala ang unang benta",
     back: "Bumalik", continue: "Magpatuloy", finish: "Pumunta sa dashboard",
+    storeNameError: "Maglagay ng pangalan ng tindahan na may hindi bababa sa 2 character.", ownerNameError: "Ilagay ang iyong pangalan na may hindi bababa sa 2 character.",
+    credentialsError: "Kulang o hindi wasto ang detalye ng account. Bumalik sa paggawa ng account at subukan muli.",
+    setupError: "Hindi natapos ang pag-set up ng tindahan. Walang binago. Subukan muli.", signInError: "Nagawa ang tindahan, pero hindi ka awtomatikong na-sign in. Mag-sign in para magpatuloy.", signInAction: "Pumunta sa sign in", createAccountAction: "Gumawa ng account",
   },
 } as const;
 
@@ -35,64 +44,122 @@ export function OnboardingForm({ locale, isAuthenticated }: { locale: Locale; is
   const text = copy[locale];
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ storeName?: string; ownerName?: string }>({});
+  const [recovery, setRecovery] = useState<{ href: string; label: string } | null>(null);
+  const [accountCreated, setAccountCreated] = useState(false);
   const [pending, setPending] = useState(false);
 
+  function root() {
+    return document.getElementById("store-setup-form")!;
+  }
+
+  function value(name: string) {
+    return (root().querySelector(`[name="${name}"]`) as HTMLInputElement | HTMLSelectElement | null)?.value ?? "";
+  }
+
+  function checked(name: string) {
+    return (root().querySelector(`[name="${name}"]`) as HTMLInputElement | null)?.checked ?? false;
+  }
+
+  function validateStoreDetails() {
+    const nextErrors = {
+      storeName: value("storeName").trim().length < 2 ? text.storeNameError : undefined,
+      ownerName: value("ownerName").trim().length < 2 ? text.ownerNameError : undefined,
+    };
+    setFieldErrors(nextErrors);
+    if (nextErrors.storeName || nextErrors.ownerName) {
+      setError("");
+      setStep(1);
+      setTimeout(() => document.getElementById(nextErrors.storeName ? "storeName" : "ownerName")?.focus());
+      return false;
+    }
+    return true;
+  }
+
+  function goToPreferences() {
+    setError("");
+    setRecovery(null);
+    if (validateStoreDetails()) setStep(2);
+  }
+
   async function completeSetup() {
-    const root = document.getElementById("store-setup-form")!;
-    const value = (name: string) => (root.querySelector(`[name="${name}"]`) as HTMLInputElement | HTMLSelectElement | null)?.value ?? "";
-    const checked = (name: string) => (root.querySelector(`[name="${name}"]`) as HTMLInputElement | null)?.checked ?? false;
+    if (!validateStoreDetails()) return;
     setPending(true);
     setError("");
+    setRecovery(null);
 
-    if (!isAuthenticated) {
-      const stored = sessionStorage.getItem("tindahan-setup-credentials");
-      const credentials = stored ? JSON.parse(stored) as SetupCredentials : null;
-      if (!credentials?.email || !credentials.password) {
-        setError("Return to sign in and enter the email address and password you want to use.");
-        setPending(false);
-        return;
-      }
-      const registration = await fetch("/api/register", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name: value("ownerName"), email: credentials.email, password: credentials.password }),
-      });
-      if (!registration.ok) {
-        const result = await registration.json() as { error?: string };
-        setError(result.error ?? "Account creation failed.");
-        setPending(false);
-        return;
-      }
-      const authentication = await signIn("credentials", { email: credentials.email, password: credentials.password, redirect: false });
-      if (!authentication?.ok) {
-        setError("Your account was created, but sign-in failed. Return to sign in and try again.");
-        setPending(false);
-        return;
-      }
-    }
+    const store = {
+      name: value("storeName"),
+      language: locale,
+      lowStockEnabled: checked("lowStock"),
+      dailySummaryEnabled: checked("dailySummary"),
+      storeType: value("storeType"),
+    };
 
-    const response = await fetch("/api/onboarding", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        name: value("storeName"),
-        language: locale,
-        lowStockEnabled: checked("lowStock"),
-        dailySummaryEnabled: checked("dailySummary"),
-        storeType: value("storeType"),
-      }),
-    });
-
-    if (!response.ok) {
-      const result = await response.json() as { error?: string };
-      setError(result.error ?? "Store setup failed.");
+    const parsedStore = storeInput.safeParse(store);
+    if (!parsedStore.success) {
+      setError(text.setupError);
       setPending(false);
       return;
     }
 
-    sessionStorage.removeItem("tindahan-setup-credentials");
-    setPending(false);
-    setStep(3);
+    try {
+      if (!isAuthenticated) {
+        let credentials: SetupCredentials | null = null;
+        try {
+          const stored = sessionStorage.getItem("tindahan-setup-credentials");
+          credentials = stored ? JSON.parse(stored) as SetupCredentials : null;
+        } catch {
+          credentials = null;
+        }
+        const account = registrationInput.safeParse({ name: value("ownerName"), ...credentials });
+        if (!account.success) {
+          setError(text.credentialsError);
+          setRecovery({ href: "/register", label: text.createAccountAction });
+          return;
+        }
+
+        if (!accountCreated) {
+          const registration = await fetch("/api/onboarding/register", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ account: account.data, store: parsedStore.data }),
+          });
+          if (!registration.ok) {
+            const result = await registration.json() as { error?: string };
+            setError(result.error ?? text.setupError);
+            setRecovery(registration.status === 409 ? { href: "/sign-in", label: text.signInAction } : null);
+            return;
+          }
+          setAccountCreated(true);
+        }
+
+        const authentication = await signIn("credentials", { email: account.data.email, password: account.data.password, redirect: false });
+        if (!authentication?.ok) {
+          setError(text.signInError);
+          setRecovery({ href: "/sign-in", label: text.signInAction });
+          return;
+        }
+      } else {
+        const response = await fetch("/api/onboarding", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(parsedStore.data),
+        });
+        if (!response.ok) {
+          const result = await response.json() as { error?: string };
+          setError(result.error ?? text.setupError);
+          return;
+        }
+      }
+
+      sessionStorage.removeItem("tindahan-setup-credentials");
+      setStep(3);
+    } catch {
+      setError(text.setupError);
+    } finally {
+      setPending(false);
+    }
   }
 
   return <div id="store-setup-form">
@@ -101,15 +168,15 @@ export function OnboardingForm({ locale, isAuthenticated }: { locale: Locale; is
       }
     </div>
 
-    {error && <p className="form-alert" role="alert" style={{ marginBottom: "var(--space-4)" }}>{error}</p>}
+    {error && <div className="form-alert" role="alert" style={{ marginBottom: "var(--space-4)" }}><span>{error}</span>{recovery && <span style={{ display: "block", marginTop: "var(--space-2)" }}><Link href={recovery.href} style={{ color: "inherit", fontWeight: "var(--weight-semibold)", textDecoration: "underline" }}>{recovery.label}</Link></span>}</div>}
 
     <section hidden={step !== 1}>
       <h1 style={{ marginBottom: "var(--space-2)" }}>{text.title1}</h1>
       <p className="text-muted" style={{ marginBottom: "var(--space-6)" }}>{text.intro1}</p>
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
-        <div className="field"><label className="field-label" htmlFor="storeName">{text.storeName}</label><input className="input" id="storeName" name="storeName" type="text" placeholder={text.storeNamePlaceholder} autoComplete="organization" required/></div>
-        <div className="field"><label className="field-label" htmlFor="ownerName">{text.ownerName}</label><input className="input" id="ownerName" name="ownerName" type="text" placeholder={text.ownerNamePlaceholder} autoComplete="name" required/></div>
-        <div className="field"><label className="field-label" htmlFor="storeType">{text.storeType}</label><div className="select-wrap"><select className="select" id="storeType" name="storeType" defaultValue="Sari-sari store"><option>Sari-sari store</option><option>Mini-mart</option><option>Convenience store</option><option>Other small store</option></select><Icon name="chevronDown"/></div></div>
+        <div className="field"><label className="field-label" htmlFor="storeName">{text.storeName}</label><input className={`input${fieldErrors.storeName ? " has-error" : ""}`} id="storeName" name="storeName" type="text" placeholder={text.storeNamePlaceholder} autoComplete="organization" required minLength={2} maxLength={100} aria-invalid={Boolean(fieldErrors.storeName)} aria-describedby={fieldErrors.storeName ? "store-name-error" : undefined} onChange={() => fieldErrors.storeName && setFieldErrors(current => ({ ...current, storeName: undefined }))}/>{fieldErrors.storeName && <span className="field-error" id="store-name-error">{fieldErrors.storeName}</span>}</div>
+        <div className="field"><label className="field-label" htmlFor="ownerName">{text.ownerName}</label><input className={`input${fieldErrors.ownerName ? " has-error" : ""}`} id="ownerName" name="ownerName" type="text" placeholder={text.ownerNamePlaceholder} autoComplete="name" required minLength={2} maxLength={80} aria-invalid={Boolean(fieldErrors.ownerName)} aria-describedby={fieldErrors.ownerName ? "owner-name-error" : undefined} onChange={() => fieldErrors.ownerName && setFieldErrors(current => ({ ...current, ownerName: undefined }))}/>{fieldErrors.ownerName && <span className="field-error" id="owner-name-error">{fieldErrors.ownerName}</span>}</div>
+        <div className="field"><label className="field-label" htmlFor="storeType">{text.storeType}</label><div className="select-wrap"><select className="select" id="storeType" name="storeType" defaultValue="Sari-sari store">{storeTypes.map(type => <option key={type}>{type}</option>)}</select><Icon name="chevronDown"/></div></div>
       </div>
     </section>
 
@@ -133,9 +200,9 @@ export function OnboardingForm({ locale, isAuthenticated }: { locale: Locale; is
     </section>
 
     <div style={{ display: "flex", gap: "var(--space-3)", marginTop: "var(--space-2)" }}>
-      {step > 1 && <button className="btn btn-secondary" type="button" onClick={() => setStep((step - 1) as 1 | 2)}>{text.back}</button>}
-      {step === 1 && <button className="btn btn-primary btn-block" type="button" onClick={() => setStep(2)}>{text.continue}</button>}
-      {step === 2 && <button className="btn btn-primary btn-block" type="button" disabled={pending} onClick={completeSetup}>{pending ? "…" : text.continue}</button>}
+      {step > 1 && <button className="btn btn-secondary" type="button" onClick={() => { setError(""); setRecovery(null); setStep((step - 1) as 1 | 2); }}>{text.back}</button>}
+      {step === 1 && <button className="btn btn-primary btn-block" type="button" onClick={goToPreferences}>{text.continue}</button>}
+      {step === 2 && <button className="btn btn-primary btn-block" type="button" disabled={pending} aria-busy={pending} onClick={completeSetup}>{pending ? <LoadingButtonContent message={loadingCopy(locale, "settingUpStore")}/> : text.continue}</button>}
       {step === 3 && <Link className="btn btn-primary btn-block" href="/dashboard">{text.finish}</Link>}
     </div>
   </div>;

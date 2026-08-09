@@ -41,7 +41,7 @@ Serializable transactions retry up to three times. Every deduction also requires
 
 ## 10. Barcode-scanner implementation
 
-All sources use `/api/sales/barcode` and Phase 2 normalization. The camera requests the rear camera, uses the browser BarcodeDetector when supported, displays a restrained prototype scanner surface, and stops every stream on close/unmount. Manual entry remains available. Focused scanner submission and guarded rapid page input support keyboard-style USB/Bluetooth devices without capturing ordinary form typing. A 900ms same-code cooldown reports ignored duplicate reads; deliberate later scans increment quantity.
+All sources use `/api/sales/barcode` and Phase 2 normalization. The camera requests the rear camera and uses the maintained ZXing browser decoder for cross-platform one-dimensional barcode recognition instead of depending on the experimental, platform-limited `BarcodeDetector` API. When camera permission is already granted, opening Scan barcode starts the live feed immediately; otherwise the prototype-aligned Use camera control remains available to initiate the permission flow. Successful reads keep the feed active and use the shared Warm Utility semantic success toast so consecutive customers' items can be scanned without extra clicks. A presence latch prevents one barcode held in frame from being added repeatedly and releases after it leaves the frame. The decoder loop and every media track stop on cancel, close, error, recovery-state exit, and unmount. Manual entry remains available. Focused scanner submission and guarded rapid page input support keyboard-style USB/Bluetooth devices without capturing ordinary form typing. A 900ms same-code cooldown reports ignored duplicate manual reads; deliberate later scans increment quantity.
 
 ## 11. Unknown-barcode recovery
 
@@ -79,6 +79,8 @@ Only production state wrappers were added: history client, Record Sale client/sc
 
 Markup and selectors were audited against `record-sale.html`, `sales.html`, `barcode-workflows.js`, and the corresponding component/page/responsive CSS. Composition, copy style, one primary action, two-column-to-stack behavior, sticky summary, stock banner, success modal, and accordion anatomy are preserved. Live in-app browser regression could not be completed because the browser security policy blocked localhost; no pass is claimed for that check.
 
+An August 2 follow-up audit used owner-supplied production screenshots side by side with the immutable prototype. It removed a production-only `border: 0` override from sale-picker rows, restored the prototype's bag icon and item-first hierarchy to every Sales-history row, and replaced the draft summary's wrapping flex row with a stable grid. The `This sale` card now keeps one predictable height, scrolls only its line region, and pins conflicts, totals, and Confirm sale inside the same card. Desktop lines reserve named areas for product information, price, removal, and quantity; mobile lines stack those areas without shrinking touch targets. Camera streams also stop whenever scanning leaves the active/requesting states. A scanner audit then confirmed that Windows Chrome could grant camera permission while lacking `BarcodeDetector`; the production scanner now decodes through ZXing and reports permission, unavailable-device, busy-device, unsupported-capture, and decoder-start failures separately. Dashboard attention reminders now preserve the prototype's direct-versus-grouped anatomy: a single affected product is named with stock and price context and links directly to Restock, while multiple affected products retain the count title and list representative product names.
+
 ## 20. Visual identity compliance
 
 All UI inherits Plus Jakarta Sans, warm canvas/surfaces, emerald Sales actions, olive stock context, semantic warning/danger tokens, approved radii/shadows/motion, and dark-mode remapping from the immutable prototype imports. No arbitrary color or spacing values were introduced.
@@ -105,7 +107,7 @@ Search and barcode queries are bounded and indexed; history is paginated; sugges
 
 ## 26. Tests added
 
-Domain tests cover positive quantities, line merge, scan cooldown, totals, and policies. PostgreSQL integration covers known/unknown/cross-store barcode resolution, Staff confirmation, atomic effects, duplicate confirmation, changed idempotency payload, rollback, competing final stock, suggestions, history isolation, Owner-only correction, compensation reconciliation, snapshots, and archived Product rejection.
+Domain tests cover positive quantities, line merge, scan cooldown, totals, policies, and user-facing camera failure classification. PostgreSQL integration covers known/unknown/cross-store barcode resolution, Staff confirmation, atomic effects, duplicate confirmation, changed idempotency payload, rollback, competing final stock, suggestions, history isolation, Owner-only correction, compensation reconciliation, snapshots, and archived Product rejection.
 
 ## 27. Commands executed
 
@@ -118,13 +120,13 @@ Domain tests cover positive quantities, line merge, scan cooldown, totals, and p
 - Type-check: passed in strict mode.
 - Unit tests: passed.
 - Integration tests: passed against the isolated PostgreSQL schema.
-- Aggregate automated result: 12 test files and 40 tests passed.
+- Aggregate automated result: 13 test files and 49 tests passed.
 - End-to-end: automated browser E2E is not configured; in-app localhost access was blocked by browser policy. Manual steps are below and no E2E pass is claimed.
 - Production build: passed with Next.js 16.2.12; all Sales pages and operations were emitted as dynamic routes.
 
 ## 35. Known limitations
 
-Camera recognition requires browser BarcodeDetector support; manual/scanner entry is the safe fallback. The remote test database is slow and emits its existing future SSL-mode warning. There is no persisted interrupted draft, audible scan feedback, Product image storage, or automated visual-regression harness. Live visual width checks remain manual in this environment.
+Camera recognition requires a secure context, browser media-capture support, and a readable one-dimensional barcode; manual/scanner entry is the safe fallback. The remote test database is slow and emits its existing future SSL-mode warning. There is no persisted interrupted draft, audible scan feedback, Product image storage, or automated visual-regression harness. Live visual width checks remain manual in this environment.
 
 ## 36. Deferred Phase 4+
 

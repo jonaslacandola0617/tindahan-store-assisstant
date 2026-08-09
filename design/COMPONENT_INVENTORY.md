@@ -238,3 +238,14 @@ large inventory. The entire card is one Product Details link.
 status badge, quantity/unit, price, and optional barcode/recent indicators.
 **Rule:** cards and rows use the same `TINDAHAN_DATA.products` source and match
 state. Do not add supplier/history/full codes or per-card menus.
+
+## Production loading system
+
+- `LoadingIcon` is the small Warm Utility spinner used beside specific status text.
+- `InlineLoading` is used inside buttons, controls, and compact component regions; it never replaces the task label with an unlabeled spinner.
+- `SectionLoading` centers the same icon-and-message pair inside an existing content region without adding an unnecessary card.
+- `TindahanRouteLoading` is reserved for route transitions and initial app loading. It uses the Tindahan store mark with the localized label “Loading Tindahan.”
+- `TindahanLogoLoader` preserves the approved three-path storefront geometry and reveals each stroke in sequence. The completed mark holds before a soft loop reset; it never rotates, scales, glows, or adopts reference-art colors.
+- `LoadingIcon` rotates clockwise at a consistent 0.8-second linear cadence while its operation remains pending.
+- Pending controls retain their normal dimensions, expose `aria-busy`, prevent duplicate activation, and use context-specific EN/FIL messages.
+- The prototype skeleton and `.btn-loading` rules remain immutable reference artifacts. Production code does not use them.

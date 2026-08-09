@@ -20,3 +20,29 @@ export type Locale = keyof typeof messages;
 export function dictionary(locale: string | undefined) {
   return messages[locale === "FIL" ? "FIL" : "EN"];
 }
+
+export const loadingMessages = {
+  EN: {
+    tindahan: "Loading Tindahan", products: "Loading products", inventory: "Loading inventory", productDetails: "Loading product details",
+    sales: "Loading sales", saleDetails: "Loading sale details", receipts: "Loading receipts", reports: "Loading reports",
+    notifications: "Loading notifications", searchResults: "Loading search results", recentActivity: "Loading recent activity",
+    signingIn: "Signing in", settingUpStore: "Setting up your store", savingChanges: "Saving changes", addingProduct: "Adding product",
+    updatingInventory: "Updating inventory", recordingSale: "Recording sale", confirmingReceipt: "Confirming receipt",
+    generatingBarcode: "Generating barcode", preparingLabel: "Preparing label", uploadingReceipt: "Uploading receipt",
+    processingReceipt: "Processing receipt", tryingAgain: "Trying again", linkingProduct: "Linking product", creatingProduct: "Creating product",
+    correctingSale: "Correcting sale", changingLanguage: "Changing language", lookingForBarcode: "Looking for a barcode", reversingReceipt: "Reversing receipt",
+  },
+  FIL: {
+    tindahan: "Nilo-load ang Tindahan", products: "Kinukuha ang mga produkto", inventory: "Kinukuha ang imbentaryo", productDetails: "Kinukuha ang detalye ng produkto",
+    sales: "Kinukuha ang mga benta", saleDetails: "Kinukuha ang detalye ng benta", receipts: "Kinukuha ang mga resibo", reports: "Kinukuha ang mga ulat",
+    notifications: "Kinukuha ang mga abiso", searchResults: "Hinahanap ang mga resulta", recentActivity: "Kinukuha ang kamakailang aktibidad",
+    signingIn: "Nagsa-sign in", settingUpStore: "Inihahanda ang iyong tindahan", savingChanges: "Sine-save ang mga pagbabago", addingProduct: "Idinaragdag ang produkto",
+    updatingInventory: "Ina-update ang imbentaryo", recordingSale: "Itinatala ang benta", confirmingReceipt: "Kinukumpirma ang resibo",
+    generatingBarcode: "Gumagawa ng barcode", preparingLabel: "Inihahanda ang label", uploadingReceipt: "Ina-upload ang resibo",
+    processingReceipt: "Inihahanda ang resibo", tryingAgain: "Sinusubukan ulit", linkingProduct: "Iniuugnay ang produkto", creatingProduct: "Ginagawa ang produkto",
+    correctingSale: "Itinatama ang benta", changingLanguage: "Pinapalitan ang wika", lookingForBarcode: "Hinahanap ang barcode", reversingReceipt: "Binabaligtad ang resibo",
+  },
+} as const;
+
+export type LoadingMessageKey = keyof typeof loadingMessages.EN;
+export function loadingCopy(locale: Locale, key: LoadingMessageKey) { return loadingMessages[locale][key]; }

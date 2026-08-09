@@ -2,4 +2,4 @@
 
 Status: Accepted — July 31, 2026
 
-Store receipt images in private S3-compatible object storage through an application port. Browser uploads use short-lived signed requests after authorization and file-policy validation. Database records hold generated object keys and metadata, never file blobs or public URLs. Cloudflare R2 and AWS S3 are interchangeable infrastructure implementations.
+Store receipt images through an application port. The selected production adapter is an existing private AWS S3 general-purpose bucket using AWS SDK v3, bucket-owner-enforced ownership, disabled ACLs, blocked public access, SSE-S3, virtual-hosted regional endpoints, and short-lived signed PUT/GET requests. Database records hold generated object keys and metadata, never file blobs, credentials, or signed/public URLs. Local storage remains an explicit development/test adapter; production does not fall back to it.

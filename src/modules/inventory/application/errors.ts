@@ -1,4 +1,4 @@
-export type InventoryErrorCode = "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION" | "CONFLICT" | "NEGATIVE_STOCK" | "DUPLICATE_BARCODE" | "ARCHIVED_PRODUCT";
+export type InventoryErrorCode = "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION" | "CONFLICT" | "NEGATIVE_STOCK" | "DUPLICATE_BARCODE" | "ARCHIVED_PRODUCT" | "PLAN_RESTRICTED";
 
 export class InventoryError extends Error {
   constructor(public readonly code: InventoryErrorCode, message: string, public readonly status: number) { super(message); }

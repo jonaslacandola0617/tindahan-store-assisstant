@@ -6,6 +6,8 @@ import { authOptions } from "@/modules/identity/infrastructure/auth-options";
 import { resolveStoreContext } from "@/modules/stores/application/store-context";
 import { serverEnvironment } from "@/platform/environment/server";
 import { searchProducts } from "@/modules/inventory/application/inventory-service";
+import { receiptAttentionCount } from "@/modules/receipts/application/receipt-service";
+import { notificationUnreadCount } from "@/modules/operating-view/application/operating-view-service";
 
 export default async function ProtectedLayout({
   children,
@@ -20,15 +22,17 @@ export default async function ProtectedLayout({
   if (!context) redirect("/onboarding");
   const locale =
     (await cookies()).get("tindahan-language")?.value === "FIL" ? "FIL" : "EN";
-  const inventoryAttention = serverEnvironment.demoMode
-    ? 0
-    : (await searchProducts(session.user.id, { limit: 1 })).counts.low;
+  const [inventoryAttention, receiptAttention, notificationAttention] = serverEnvironment.demoMode
+    ? [0, 0, 0]
+    : await Promise.all([searchProducts(session.user.id, { limit: 1 }).then(result => result.counts.low), receiptAttentionCount(session.user.id), notificationUnreadCount(session.user.id)]);
   return (
     <AppShell
       storeName={context.store.name}
       role={context.role}
       locale={locale}
       inventoryAttention={inventoryAttention}
+      receiptAttention={receiptAttention}
+      notificationAttention={notificationAttention}
     >
       {children}
     </AppShell>

@@ -8,6 +8,8 @@ import { calculateStockChange, stockStatus } from "../domain/inventory";
 import { generateInternalBarcode, validateBarcode } from "@/modules/barcodes/domain/barcode";
 import { InventoryError } from "./errors";
 import { requireInventoryOwner } from "./policy";
+import { assertStoreMayWrite } from "@/modules/saas/application/saas-service";
+import { SaasError } from "@/modules/saas/application/errors";
 
 const money = z.coerce.number().finite().min(0).max(99_999_999.99);
 const integer = z.coerce.number().int().min(0).max(2_000_000_000);
@@ -26,10 +28,11 @@ const adjustmentInput = z.object({ delta: z.coerce.number().int().min(-2_000_000
 const barcodeInput = z.object({ value: z.string().optional(), idempotencyKey: z.string().min(8).max(120) });
 const categoryQuery = z.string().trim().max(80);
 
-async function contextFor(userId: string, ownerOnly = false) {
+async function contextFor(userId: string, ownerOnly = false, write = false) {
   const context = await resolveStoreContext(userId);
   if (!context) throw new InventoryError("FORBIDDEN", "You do not have access to a store.", 403);
   if (ownerOnly) requireInventoryOwner(context.role);
+  if (write) try { await assertStoreMayWrite(context.store.id); } catch (error) { if (error instanceof SaasError) throw new InventoryError("PLAN_RESTRICTED", error.message, error.status); throw error; }
   return context;
 }
 
@@ -89,7 +92,7 @@ export async function readProduct(userId: string, productId: string) {
 }
 
 export async function createProduct(userId: string, raw: unknown) {
-  const { store } = await contextFor(userId, true); const input = productInput.parse(raw); const unit = unitDetails(input.sellingUnit, input.otherUnitRaw); const correlationId = randomUUID();
+  const { store } = await contextFor(userId, true, true); const input = productInput.parse(raw); const unit = unitDetails(input.sellingUnit, input.otherUnitRaw); const correlationId = randomUUID();
   let barcode: string | null = null;
   if (input.barcodeChoice === "MANUFACTURER") barcode = validateBarcode(input.manufacturerBarcode ?? "");
   for (let attempt = 0; attempt < 3; attempt++) try { return await database().$transaction(async tx => {
@@ -112,7 +115,7 @@ export async function createProduct(userId: string, raw: unknown) {
 }
 
 export async function updateProduct(userId: string, productId: string, raw: unknown) {
-  const { store } = await contextFor(userId, true); const input = updateInput.parse(raw); const correlationId = randomUUID();
+  const { store } = await contextFor(userId, true, true); const input = updateInput.parse(raw); const correlationId = randomUUID();
   return database().$transaction(async tx => {
     const existing = await tx.product.findFirst({ where: { id: productId, storeId: store.id, status: "ACTIVE" } });
     if (!existing) throw new InventoryError("NOT_FOUND", "Product not found.", 404);
@@ -131,14 +134,14 @@ export async function updateProduct(userId: string, productId: string, raw: unkn
 }
 
 export async function archiveProduct(userId: string, productId: string) {
-  const { store } = await contextFor(userId, true); const correlationId = randomUUID();
+  const { store } = await contextFor(userId, true, true); const correlationId = randomUUID();
   return database().$transaction(async tx => { const product = await tx.product.findFirst({ where: { id: productId, storeId: store.id } }); if (!product) throw new InventoryError("NOT_FOUND", "Product not found.", 404);
     const updated = await tx.product.update({ where: { id: product.id }, data: { status: "ARCHIVED", archivedAt: new Date(), version: { increment: 1 } } });
     await tx.auditEvent.create({ data: { storeId: store.id, actorId: userId, action: "PRODUCT_ARCHIVED", entityType: "Product", entityId: product.id, correlationId, before: { status: product.status }, after: { status: "ARCHIVED" } } }); return updated; });
 }
 
 async function changeStock(userId: string, productId: string, raw: unknown, kind: "add"|"adjust") {
-  const { store } = await contextFor(userId, true); const parsed = kind === "add" ? stockInput.parse(raw) : adjustmentInput.parse(raw); const delta = "quantity" in parsed ? parsed.quantity : parsed.delta; const scope = kind === "add" ? "ADD_INVENTORY" : "ADJUST_INVENTORY"; const hash = requestHash(parsed);
+  const { store } = await contextFor(userId, true, true); const parsed = kind === "add" ? stockInput.parse(raw) : adjustmentInput.parse(raw); const delta = "quantity" in parsed ? parsed.quantity : parsed.delta; const scope = kind === "add" ? "ADD_INVENTORY" : "ADJUST_INVENTORY"; const hash = requestHash(parsed);
   for (let attempt=0; attempt<3; attempt++) try { return await database().$transaction(async tx => {
     const prior = await tx.idempotencyKey.findUnique({ where: { storeId_scope_key: { storeId: store.id, scope, key: parsed.idempotencyKey } } }); if (prior) { if (prior.requestHash !== hash) throw new InventoryError("CONFLICT", "This request was already used for a different change.", 409); return prior.response; }
     const product = await tx.product.findFirst({ where: { id: productId, storeId: store.id }, include: { balance: true } }); if (!product) throw new InventoryError("NOT_FOUND", "Product not found.", 404); if (product.status !== "ACTIVE") throw new InventoryError("ARCHIVED_PRODUCT", "Archived products cannot be changed.", 409);
@@ -153,7 +156,7 @@ export const addInventory = (userId: string, productId: string, raw: unknown) =>
 export const adjustInventory = (userId: string, productId: string, raw: unknown) => changeStock(userId, productId, raw, "adjust");
 
 export async function assignBarcode(userId: string, productId: string, raw: unknown) {
-  const { store } = await contextFor(userId, true); const input = barcodeInput.parse(raw); const value = validateBarcode(input.value ?? ""); const hash = requestHash({ productId, value });
+  const { store } = await contextFor(userId, true, true); const input = barcodeInput.parse(raw); const value = validateBarcode(input.value ?? ""); const hash = requestHash({ productId, value });
   try { return await database().$transaction(async tx => {
     const prior = await tx.idempotencyKey.findUnique({ where: { storeId_scope_key: { storeId: store.id, scope: "ASSIGN_BARCODE", key: input.idempotencyKey } } });
     if (prior) { if (prior.requestHash !== hash) throw new InventoryError("CONFLICT", "This request was already used for a different barcode.", 409); return prior.response as unknown as ProductBarcode; }
@@ -164,7 +167,7 @@ export async function assignBarcode(userId: string, productId: string, raw: unkn
 }
 
 export async function generateBarcode(userId: string, productId: string, raw: unknown, replace = false) {
-  const { store } = await contextFor(userId, true); const input = barcodeInput.parse(raw); const scope = replace ? "REPLACE_BARCODE" : "GENERATE_BARCODE"; const hash = requestHash({ productId, replace });
+  const { store } = await contextFor(userId, true, true); const input = barcodeInput.parse(raw); const scope = replace ? "REPLACE_BARCODE" : "GENERATE_BARCODE"; const hash = requestHash({ productId, replace });
   return database().$transaction(async tx => { const product = await tx.product.findFirst({ where: { id: productId, storeId: store.id, status: "ACTIVE" } }); if (!product) throw new InventoryError("NOT_FOUND", "Product not found.", 404);
     const prior = await tx.idempotencyKey.findUnique({ where: { storeId_scope_key: { storeId: store.id, scope, key: input.idempotencyKey } } }); if (prior) { if (prior.requestHash !== hash) throw new InventoryError("CONFLICT", "This request was already used for a different barcode action.", 409); return prior.response as unknown as ProductBarcode; }
     const previous = replace ? await tx.productBarcode.findFirst({ where: { storeId: store.id, productId, type: "INTERNAL", status: "ACTIVE" }, orderBy: { assignedAt: "desc" } }) : null;

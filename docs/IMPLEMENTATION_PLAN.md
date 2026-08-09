@@ -24,18 +24,26 @@ Deliver catalog, archive lifecycle, server-side cursor search/filtering, balance
 
 Deliver durable draft handling, product selection, camera/hardware barcode input, unknown-code recovery, atomic idempotent confirmation, non-negative stock enforcement, history, and dashboard projection events.
 
-## Phase 4 — receipt intelligence
+## Phase 4 — receipt intelligence infrastructure
 
-Deliver signed private uploads, durable jobs, OCR adapter plus deterministic mock, extraction/matching/review, idempotent atomic confirmation, retry, history, and compensating reversal.
+Deliver signed private uploads, durable jobs, OCR adapter plus deterministic mock, normalized extraction, initial matching/review foundations, and the production cloud worker boundary.
 
-## Phase 5 — operating view
+## Phase 5 — receipt review and inventory integration
 
-Deliver dashboard projections, attention feed, notifications, reports, global search, exports, empty/unavailable states, and reconciliation tests.
+Deliver the owner-safe review queue, private original-image access, editable extracted lines, store-scoped product resolution, remembered mappings, retry/reject recovery, atomic idempotent approval, immutable inventory events, receipt audit history, and dashboard receipt indicators.
 
-## Phase 6 — SaaS readiness
+## Phase 6 — operating view
+
+Deliver broader dashboard projections, grouped notifications, reports, global search, exports, empty/unavailable states, and reconciliation tests.
+
+Status: complete on 2026-08-09. See `docs/reports/PHASE_6_REPORT.md`.
+
+## Phase 7 — SaaS readiness
 
 Deliver configurable trial/paid-plan foundation, billing adapter, grace/restricted states, staff invitation management, owner-only billing/settings, export, retention controls, and pilot administration.
 
-## Phase 7 — release hardening
+Status: complete on 2026-08-09. See `docs/reports/PHASE_7_REPORT.md`.
+
+## Phase 8 — release hardening
 
 Complete tenant, authorization, concurrency, idempotency, accessibility, responsive, performance, index, upload-abuse, backup/recovery, deployment, monitoring, and end-to-end audits.

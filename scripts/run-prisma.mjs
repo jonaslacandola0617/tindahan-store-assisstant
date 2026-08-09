@@ -16,7 +16,7 @@ if (!(["direct", "test"].includes(target)) || prismaArguments.length === 0) {
 
 let connectionUrl =
   target === "test"
-    ? process.env.TEST_DATABASE_URL ?? process.env.TEST_DATABASE
+    ? process.env.TEST_DIRECT_DATABASE_URL ?? process.env.TEST_DATABASE_URL ?? process.env.TEST_DATABASE
     : process.env.DIRECT_URL ?? process.env.DATABASE_URL;
 
 if (!connectionUrl) {
@@ -29,6 +29,12 @@ if (!connectionUrl) {
 // makes the test target safe when a pooled database URL points at a reused DB.
 if (target === "test") {
   const url = new URL(connectionUrl);
+  // Neon runtime URLs commonly use the transaction pooler, which Prisma's
+  // schema engine cannot use for migrations. Keep the same branch/database
+  // and resolve its direct host when no explicit test direct URL is supplied.
+  if (!process.env.TEST_DIRECT_DATABASE_URL && url.hostname.includes("-pooler.")) {
+    url.hostname = url.hostname.replace("-pooler.", ".");
+  }
   url.searchParams.set("schema", "tindahan_phase3_test");
   connectionUrl = url.toString();
 }

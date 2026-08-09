@@ -154,3 +154,11 @@ computed this way, not eyeballed.
   `alt` is empty; missing imagery uses an `aria-hidden` package fallback.
 - No-match, no-products, loading, and unavailable states include plain-language
   descriptions and one clear recovery action.
+
+## Production loading states
+
+- Visible pending messages are exposed with `role="status"`, polite live announcement, and `aria-busy="true"` on the affected region or control.
+- Icon-only pending feedback is allowed only in constrained controls and includes a screen-reader-only localized label.
+- The loading icon is decorative context for adjacent text; meaning never depends on motion alone.
+- Both spinner rotation and branded-mark breathing stop under `prefers-reduced-motion: reduce`.
+- Pending controls preserve the prototype focus, contrast, and 44px target contracts.

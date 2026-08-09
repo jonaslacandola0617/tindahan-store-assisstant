@@ -81,6 +81,12 @@ const paths = {
       <path d="m8.5 12.3 2.4 2.4 4.6-5" />
     </>
   ),
+  xCircle: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m9 9 6 6M15 9l-6 6" />
+    </>
+  ),
   info: (
     <>
       <circle cx="12" cy="12" r="9" />
@@ -88,6 +94,7 @@ const paths = {
     </>
   ),
   chevronDown: <path d="m6 9 6 6 6-6" />,
+  chevronRight: <path d="m9 6 6 6-6 6" />,
   plus: <path d="M12 5v14M5 12h14" />,
   minus: <path d="M5 12h14" />,
   list: (
@@ -109,6 +116,32 @@ const paths = {
     <>
       <path d="M12.6 3.5H20v7.4L11.2 20 3.5 12.3 12.6 3.5Z" />
       <circle cx="16.2" cy="7.8" r="1.4" />
+    </>
+  ),
+  upload: (
+    <>
+      <path d="M12 15.5V4m-5 5 5-5 5 5" />
+      <path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16" />
+    </>
+  ),
+  truck: (
+    <>
+      <path d="M3 7h10v9H3zM13 10h4l3.5 3.2V16H13" />
+      <circle cx="7.5" cy="18" r="1.7" />
+      <circle cx="17" cy="18" r="1.7" />
+    </>
+  ),
+  refresh: (
+    <>
+      <path d="M4.5 12a7.5 7.5 0 0 1 13.2-4.8L20 9.5M20 4.5v5h-5" />
+      <path d="M19.5 12a7.5 7.5 0 0 1-13.2 4.8L4 14.5M4 19.5v-5h5" />
+    </>
+  ),
+  image: (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="2.5" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <path d="m21 15.5-5-5L5 21" />
     </>
   ),
   printer: (
@@ -145,6 +178,12 @@ const paths = {
   x: (
     <>
       <path d="M6 6l12 12M18 6 6 18" />
+    </>
+  ),
+  loader: (
+    <>
+      <path className="loader-track" d="M21 12a9 9 0 0 1-9 9" />
+      <path className="loader-active" d="M3 12a9 9 0 0 1 9-9" />
     </>
   ),
 } as const;

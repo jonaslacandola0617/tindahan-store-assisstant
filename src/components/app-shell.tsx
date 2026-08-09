@@ -34,23 +34,37 @@ export function AppShell({
   role,
   locale,
   inventoryAttention = 0,
+  receiptAttention = 0,
+  notificationAttention = 0,
 }: {
   children: React.ReactNode;
   storeName: string;
   role: string;
   locale: "EN" | "FIL";
   inventoryAttention?: number;
+  receiptAttention?: number;
+  notificationAttention?: number;
 }) {
   const pathname = usePathname();
   const copy = dictionary(locale);
   const [collapsed, setCollapsed] = useState(false);
   const active =
     routes.find((route) => pathname.startsWith(route.href)) ?? routes[0]!;
-  const contextualTitle = pathname === "/sales/new"
+  const contextualTitle = pathname === "/search"
+    ? locale === "FIL" ? "Maghanap" : "Search"
+    : pathname === "/notifications"
+      ? locale === "FIL" ? "Mga Abiso" : "Notifications"
+      : pathname === "/sales/new"
     ? locale === "FIL" ? "Itala ang benta" : "Record a sale"
     : /^\/sales\/[^/]+$/.test(pathname)
       ? locale === "FIL" ? "Detalye ng benta" : "Sale details"
-      : copy[active.key];
+      : pathname === "/receipts/new"
+        ? locale === "FIL" ? "I-scan ang resibo" : "Scan a receipt"
+        : /^\/receipts\/[^/]+\/review$/.test(pathname)
+          ? locale === "FIL" ? "Suriin ang resibo" : "Review receipt"
+          : /^\/receipts\/[^/]+$/.test(pathname)
+            ? locale === "FIL" ? "Detalye ng resibo" : "Receipt details"
+            : copy[active.key];
   const mobile =
     locale === "FIL"
       ? {
@@ -105,6 +119,9 @@ export function AppShell({
                   <span className="badge badge-warning nav-badge">
                     {inventoryAttention}
                   </span>
+                )}
+                {route.key === "receipts" && receiptAttention > 0 && (
+                  <span className="badge badge-info nav-badge">{receiptAttention}</span>
                 )}
               </Link>
             ))}
@@ -166,11 +183,12 @@ export function AppShell({
               <LanguageToggle locale={locale} />
               <ThemeToggle />
               <Link
-                className="btn-icon btn-ghost"
+                className="btn-icon btn-ghost shell-notification-link"
                 href="/notifications"
                 aria-label={copy.notifications}
               >
                 <Icon name="bell" />
+                {notificationAttention > 0 && <span className="badge badge-danger shell-notification-badge">{Math.min(notificationAttention, 99)}</span>}
               </Link>
             </div>
           </header>
@@ -196,7 +214,7 @@ export function AppShell({
         </Link>
         <Link
           className="mobile-nav-fab"
-          href="/receipt-upload"
+          href="/receipts/new"
           aria-label={mobile.scan}
         >
           <Icon name="camera" />
@@ -208,9 +226,10 @@ export function AppShell({
           <Icon name="bag" />
           <span>{mobile.sales}</span>
         </Link>
-        <Link className="mobile-nav-item" href="/notifications">
+        <Link className={`mobile-nav-item${pathname.startsWith("/notifications") ? " active" : ""}`} href="/notifications">
           <Icon name="bell" />
           <span>{mobile.alerts}</span>
+          {notificationAttention > 0 && <span className="badge badge-danger mobile-alert-badge">{Math.min(notificationAttention, 99)}</span>}
         </Link>
       </nav>
     </>

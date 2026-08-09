@@ -1,23 +1,24 @@
-import { z } from "zod";
 import { database } from "@/platform/persistence/prisma";
-
-export const storeInput = z.object({
-  name: z.string().trim().min(2).max(100),
-  address: z.string().trim().max(240).optional(),
-  contact: z.string().trim().max(80).optional(),
-  language: z.enum(["EN", "FIL"]).default("EN"),
-  lowStockEnabled: z.boolean().default(true),
-});
+import { storeInput } from "../domain/store";
+import { serverEnvironment } from "@/platform/environment/server";
 
 export async function createStoreForOwner(userId: string, input: unknown) {
   const value = storeInput.parse(input);
   return database().store.create({
     data: {
       name: value.name,
+      storeType: value.storeType,
       address: value.address || null,
       contact: value.contact || null,
-      preference: { create: { defaultLanguage: value.language, lowStockEnabled: value.lowStockEnabled } },
+      preference: { create: { defaultLanguage: value.language, lowStockEnabled: value.lowStockEnabled, dailySummaryEnabled: value.dailySummaryEnabled } },
       memberships: { create: { userId, role: "OWNER", status: "ACTIVE" } },
+      subscription: {
+        create: {
+          plan: "TRIAL",
+          status: "TRIALING",
+          trialEndsAt: new Date(Date.now() + serverEnvironment.TRIAL_DAYS * 86_400_000),
+        },
+      },
     },
     select: { id: true, name: true },
   });

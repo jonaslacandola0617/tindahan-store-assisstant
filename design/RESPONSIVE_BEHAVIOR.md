@@ -105,3 +105,7 @@ wrap awkwardly on a 390px viewport.
 - At 820px and below the result bar wraps when needed. At 400px and below the
   segmented toggle spans the content width and both 44px targets share the row.
 - Cards allow names to wrap and use the existing bottom-navigation safe area.
+
+## Loading behavior
+
+Inline loading stays within its originating control and wraps only when localized copy requires it. Section loading centers within the existing responsive content region. The full route loader respects safe-area insets; authenticated route loading occupies the main content area so the responsive shell and navigation do not jump or disappear.

@@ -1,1 +1,5 @@
-export default function Loading() { return <main className="standalone"><p className="text-muted">Loading Tindahan…</p></main>; }
+import { TindahanRouteLoading } from "@/components/loading";
+
+export default function Loading() {
+  return <TindahanRouteLoading region="viewport"/>;
+}

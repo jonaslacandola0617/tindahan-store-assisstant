@@ -5,7 +5,7 @@ const modules: Record<string, { title: string; message: string; icon: IconName }
   inventory: { title: "Inventory", message: "Product and stock workflows arrive in Phase 2.", icon: "package" },
   sales: { title: "Sales", message: "Atomic sale recording arrives in Phase 2.", icon: "bag" },
   receipts: { title: "Receipts", message: "Receipt intake and review arrive in Phase 3.", icon: "receipt" },
-  reports: { title: "Reports", message: "Operational reporting arrives in Phase 3.", icon: "chart" },
+  reports: { title: "Reports", message: "Operational reporting arrives in Phase 6.", icon: "chart" },
   settings: { title: "Settings", message: "Store preferences are ready; expanded settings arrive with each module.", icon: "sliders" },
   search: { title: "Search", message: "Global product and supplier search arrives in Phase 2.", icon: "search" },
   notifications: { title: "Notifications", message: "The notification boundary is modeled and will activate with operational events.", icon: "bell" },

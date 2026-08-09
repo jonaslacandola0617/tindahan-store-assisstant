@@ -201,3 +201,9 @@ records attached to the product, and adds a history entry.
   fallback.
 - Query-string demo states cover `loading`, `error`, and inventory-level
   `empty`; retry returns to normal results. No-match provides a direct reset.
+
+## Production loading feedback
+
+Route transitions use the branded Tindahan loading mark. Local actions keep the current page usable and show a small spinner beside a specific verb such as “Adding product,” “Updating inventory,” or “Recording sale.” Search results use a compact section state after the existing debounce; unrelated controls remain available. Buttons are disabled only for the operation they submit and keep a stable footprint while pending.
+
+Loading is not treated as success or failure. Success continues through the established toast or confirmation pattern, while failures retain entered data and expose the existing retry or correction path.

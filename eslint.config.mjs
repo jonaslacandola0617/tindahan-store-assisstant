@@ -5,5 +5,5 @@ import nextTypeScript from "eslint-config-next/typescript";
 export default defineConfig([
   ...nextVitals,
   ...nextTypeScript,
-  globalIgnores([".next/**", "src/generated/**", ".tmp-prd-render/**", "design/static-prototype/**"])
+  globalIgnores([".next/**", "dist/**", "src/generated/**", ".tmp-prd-render/**", "design/static-prototype/**"])
 ]);

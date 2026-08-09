@@ -44,7 +44,19 @@ Product search is server-side, store-scoped, bounded, and cursor-loaded. List/gr
 
 Phase 3 sale confirmation runs in a serializable transaction. It merges duplicate draft lines, resolves active store-owned products, conditionally decrements versioned balances only when sufficient quantity remains, creates the confirmed Sale and immutable SaleLine snapshots, appends one movement per line, records an audit event, and completes a store-scoped idempotency key. Serialization conflicts retry three times. A full Owner correction creates a `SaleCorrection`, appends restoring movements, and marks the original sale corrected without editing or deleting its lines.
 
-Sales search is bounded and indexed by the existing catalog/barcode paths. Recent suggestions use distinct recently confirmed lines; frequent suggestions use a simple confirmed-quantity aggregate. History is range-filtered and cursor-paginated. The Phase 3 dashboard reads authoritative confirmed-sale aggregates and recent sales directly; broader dashboard projections remain deferred to Phase 5.
+Phase 4 receipt preparation starts with an authorized store-scoped Receipt and a short-lived signed direct upload target. Image bytes remain in private storage; PostgreSQL retains only metadata, fingerprints, extraction/review state, and history. A durable `JobRun` is claimed once before the provider-neutral extraction adapter runs. Normalization, alias/barcode/exact/fuzzy matching, and review-model creation are deterministic, bounded, and store-scoped. Provider payloads, confidence values, and job vocabulary do not cross into owner-facing contracts.
+
+The production storage adapter is AWS S3 through one server-only AWS SDK v3 client. It creates short-lived PUT/GET URLs, retrieves objects for validation and OCR, and never stores signed URLs. Standard AWS resolution is used when no custom endpoint is configured. The production extraction adapter sends server-retrieved bytes to Azure Document Intelligence `prebuilt-receipt` API `2024-11-30`, polls the protected operation, and maps Azure fields/errors into provider-neutral types before the application layer sees them.
+
+Production receipt execution also has an AWS Lambda target for standard S3 `ObjectCreated` events. The handler validates bucket/prefix/key ownership, resolves the existing `ReceiptFile` and durable `JobRun` in Neon, then delegates to the same atomic `processReceiptJob` service used by the local polling worker. Warm invocations reuse the platform Prisma singleton and Lambda uses the AWS SDK default credential chain. Duplicate events and concurrent invocations are safe because only one queued job claim can succeed; Lambda never confirms a receipt or writes inventory.
+
+Receipt confirmation runs in a serializable PostgreSQL transaction. It validates every included line, active product, duplicate acknowledgement, receipt state, and idempotency payload; then advances versioned balances, appends one immutable receipt movement per line, learns store-specific aliases, records audit history, and marks the receipt confirmed. Reversal is Owner-only and appends compensating movements after validating aggregate available stock per product. Neither workflow edits or deletes historical movements.
+
+Sales search is bounded and indexed by the existing catalog/barcode paths. Recent suggestions use distinct recently confirmed lines; frequent suggestions use a simple confirmed-quantity aggregate. History is range-filtered and cursor-paginated. The dashboard composes authoritative inventory, confirmed-sale, receipt-attention, and recent-activity services without writing business state.
+
+Phase 6 operating views are implemented as store-scoped application read services. Reports derive top products from confirmed, uncorrected sale lines and explain inventory changes from the immutable movement ledger; week/month boundaries use Manila store time. CSV export reuses the same report DTO so its totals cannot diverge from the page. Global search is bounded across active products, categories, suppliers, and receipt history, and returns no archived or cross-store products. Notifications are durable derived projections: repeated low-stock conditions are grouped into a daily store key, receipt-ready/failed work uses one stable state key, history is retained, and read state is store-authorized. None of these projections can change inventory.
+
+Phase 7 adds a store-scoped subscription state and a provider-neutral billing port. Existing stores are active pilots; new stores receive configurable trials. Trialing, active, and grace stores may write. Restricted and canceled stores keep read and export access while centralized application checks reject Inventory, Sales, and Receipt mutations. Staff invitations use random one-time tokens whose hashes alone are stored; acceptance creates the user and active Staff membership in one serializable transaction. Owner-only store preferences include receipt-photo retention metadata, while structured business history is never subject to photo deletion.
 
 ## Presentation and state
 
@@ -53,6 +65,8 @@ Server Components render by default. Client Components are limited to genuine in
 ## Provider ports
 
 Private object storage, durable jobs, OCR, billing, logging/error monitoring, and barcode generation are accessed through stable interfaces. Development and automated tests use deterministic local/mock implementations.
+
+Receipt storage supports a local private filesystem substitute in development and AWS Signature V4-compatible private object storage in production. Receipt extraction supports a deterministic mock and a configured HTTP adapter. The database job adapter is runnable as a persistent worker; a signed webhook wake-up boundary is available for hosted job orchestration.
 
 ## Security baseline
 

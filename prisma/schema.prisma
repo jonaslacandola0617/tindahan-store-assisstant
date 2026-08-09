@@ -34,6 +34,20 @@ enum MembershipStatus {
   DISABLED
 }
 
+enum PlanCode {
+  PILOT
+  TRIAL
+  STANDARD
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  GRACE
+  RESTRICTED
+  CANCELED
+}
+
 enum ProductStatus {
   ACTIVE
   ARCHIVED
@@ -101,6 +115,22 @@ enum ReceiptStatus {
   REVIEW_READY
   CONFIRMED
   FAILED
+  REVERSED
+  REJECTED
+}
+
+enum ReceiptUploadStatus {
+  PENDING
+  UPLOADED
+  VALIDATED
+  FAILED
+}
+
+enum ReceiptExtractionStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
 }
 
 enum ReceiptMatchStatus {
@@ -139,6 +169,7 @@ model User {
   emailVerified     DateTime?
   image             String?
   passwordHash      String?
+  phone             String?
   preferredLanguage Language @default(EN)
   preferredTheme    Theme    @default(SYSTEM)
   createdAt         DateTime @default(now())
@@ -149,12 +180,16 @@ model User {
   sales             Sale[] @relation("SaleCreator")
   receipts          Receipt[] @relation("ReceiptCreator")
   receiptConfirmations ReceiptConfirmation[] @relation("ReceiptConfirmer")
+  receiptReversals     ReceiptReversal[] @relation("ReceiptReverser")
+  receiptRejections    ReceiptRejection[] @relation("ReceiptRejecter")
+  receiptLineReviews   ReceiptLine[] @relation("ReceiptLineReviewer")
   movements         InventoryMovement[] @relation("MovementActor")
   barcodeLabels     BarcodeLabel[] @relation("BarcodeLabelCreator")
   barcodeAssignments ProductBarcode[] @relation("BarcodeAssigner")
   notifications     Notification[]
   auditEvents       AuditEvent[] @relation("AuditActor")
   saleCorrections   SaleCorrection[] @relation("SaleCorrectionActor")
+  staffInvitations  StaffInvitation[] @relation("StaffInvitationInviter")
 }
 
 model Account {
@@ -194,6 +229,7 @@ model VerificationToken {
 model Store {
   id          String   @id @default(cuid())
   name        String
+  storeType   String   @default("Sari-sari store")
   address     String?
   contact     String?
   currency    String   @default("PHP")
@@ -219,10 +255,15 @@ model Store {
   receiptLines ReceiptLine[]
   receiptMatches ReceiptLineMatch[]
   receiptConfirmations ReceiptConfirmation[]
+  receiptReversals ReceiptReversal[]
+  receiptRejections ReceiptRejection[]
+  receiptAliases ReceiptAlias[]
   notifications Notification[]
   auditEvents AuditEvent[]
   idempotencyKeys IdempotencyKey[]
   jobRuns JobRun[]
+  subscription StoreSubscription?
+  staffInvitations StaffInvitation[]
 }
 
 model StoreMembership {
@@ -245,9 +286,44 @@ model StorePreference {
   defaultLanguage    Language @default(EN)
   defaultTheme       Theme @default(SYSTEM)
   lowStockEnabled    Boolean @default(true)
+  dailySummaryEnabled Boolean @default(true)
   receiptNotifications Boolean @default(true)
   inventoryView      InventoryView @default(LIST)
+  receiptRetentionDays Int @default(2555)
   store              Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model StoreSubscription {
+  id                     String @id @default(cuid())
+  storeId                String @unique
+  plan                   PlanCode @default(TRIAL)
+  status                 SubscriptionStatus @default(TRIALING)
+  trialEndsAt            DateTime?
+  currentPeriodEndsAt    DateTime?
+  graceEndsAt            DateTime?
+  externalCustomerId     String?
+  externalSubscriptionId String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  store                  Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  @@index([status, trialEndsAt])
+}
+
+model StaffInvitation {
+  id          String @id @default(cuid())
+  storeId     String
+  invitedById String
+  email       String
+  tokenHash   String @unique
+  role        MembershipRole @default(STAFF)
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime @default(now())
+  store       Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  invitedBy   User @relation("StaffInvitationInviter", fields: [invitedById], references: [id], onDelete: Restrict)
+  @@index([storeId, email, createdAt])
+  @@index([storeId, expiresAt])
 }
 
 model Category {
@@ -299,6 +375,8 @@ model Product {
   movements                 InventoryMovement[]
   saleLines                 SaleLine[]
   receiptMatches            ReceiptLineMatch[]
+  receiptLines              ReceiptLine[] @relation("ReceiptLineProduct")
+  receiptAliases            ReceiptAlias[]
   @@index([storeId, status, normalizedName])
   @@index([storeId, categoryId])
   @@index([storeId, status, updatedAt])
@@ -386,8 +464,13 @@ model InventoryMovement {
   store             Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
   product           Product @relation(fields: [productId], references: [id], onDelete: Restrict)
   actor             User? @relation("MovementActor", fields: [actorId], references: [id], onDelete: SetNull)
+  receiptLineId     String?
+  receiptConfirmationId String?
+  receiptLine       ReceiptLine? @relation(fields: [receiptLineId], references: [id], onDelete: Restrict)
+  receiptConfirmation ReceiptConfirmation? @relation(fields: [receiptConfirmationId], references: [id], onDelete: Restrict)
   @@index([storeId, productId, createdAt])
   @@index([storeId, sourceType, sourceId])
+  @@index([storeId, receiptConfirmationId])
 }
 
 model Sale {
@@ -451,7 +534,18 @@ model Receipt {
   status         ReceiptStatus @default(UPLOADED)
   idempotencyKey String?
   receiptDate    DateTime?
+  supplierText   String?
+  grandTotal     Decimal? @db.Decimal(12, 2)
+  processingStartedAt DateTime?
+  processedAt    DateTime?
+  failedAt       DateTime?
   confirmedAt    DateTime?
+  reversedAt     DateTime?
+  duplicateWarning Boolean @default(false)
+  duplicateOfId  String?
+  duplicateAcknowledgedAt DateTime?
+  lastErrorCode  String?
+  correlationId  String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   store          Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
@@ -461,9 +555,15 @@ model Receipt {
   extraction     ReceiptExtraction?
   lines          ReceiptLine[]
   confirmation   ReceiptConfirmation?
+  reversal       ReceiptReversal?
+  rejection      ReceiptRejection?
   jobRuns        JobRun[]
+  duplicateOf    Receipt? @relation("ReceiptDuplicate", fields: [duplicateOfId], references: [id], onDelete: SetNull)
+  possibleDuplicates Receipt[] @relation("ReceiptDuplicate")
+  aliasesLearned   ReceiptAlias[]
   @@unique([storeId, idempotencyKey])
   @@index([storeId, status, createdAt])
+  @@index([storeId, duplicateWarning, createdAt])
 }
 
 model ReceiptFile {
@@ -471,9 +571,16 @@ model ReceiptFile {
   storeId   String
   receiptId String @unique
   objectKey String @unique
+  originalFilename String
   mimeType  String
   sizeBytes Int
-  sha256    String
+  sha256    String?
+  width     Int?
+  height    Int?
+  uploadStatus ReceiptUploadStatus @default(PENDING)
+  uploadedAt DateTime?
+  validatedAt DateTime?
+  retentionUntil DateTime?
   createdAt DateTime @default(now())
   store     Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
   receipt   Receipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
@@ -486,11 +593,20 @@ model ReceiptExtraction {
   receiptId    String @unique
   provider     String
   providerVersion String?
+  providerOperationId String?
+  status       ReceiptExtractionStatus @default(PENDING)
   rawObjectKey String?
+  rawText      String? @db.Text
+  normalizedData Json?
+  internalConfidence Json?
   supplierName String?
   receiptDate  DateTime?
   grandTotal   Decimal? @db.Decimal(12, 2)
+  schemaVersion Int @default(1)
+  attempts     Int @default(0)
+  startedAt    DateTime?
   completedAt  DateTime?
+  failureCategory String?
   store        Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
   receipt      Receipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
 }
@@ -499,16 +615,34 @@ model ReceiptLine {
   id             String @id @default(cuid())
   storeId        String
   receiptId      String
+  sourceOrder    Int
+  rawText        String @db.Text
   rawName        String
   normalizedName String
+  barcode        String?
+  packagingText  String?
   quantity       Decimal? @db.Decimal(12, 3)
   unitPrice      Decimal? @db.Decimal(12, 2)
   lineTotal      Decimal? @db.Decimal(12, 2)
   excluded       Boolean @default(false)
+  reviewState    ReceiptMatchStatus
+  finalProductId String?
+  correctedQuantity Int?
+  finalQuantity  Int?
+  confirmedUnitPrice Decimal? @db.Decimal(12, 2)
+  confirmedLineTotal Decimal? @db.Decimal(12, 2)
+  internalConfidence Decimal? @db.Decimal(5, 4)
+  correctedById  String?
+  correctedAt    DateTime?
   store          Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
   receipt        Receipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
+  finalProduct   Product? @relation("ReceiptLineProduct", fields: [finalProductId], references: [id], onDelete: Restrict)
+  correctedBy    User? @relation("ReceiptLineReviewer", fields: [correctedById], references: [id], onDelete: SetNull)
   matches        ReceiptLineMatch[]
+  movements      InventoryMovement[]
+  @@unique([receiptId, sourceOrder])
   @@index([storeId, receiptId])
+  @@index([storeId, finalProductId])
 }
 
 model ReceiptLineMatch {
@@ -517,13 +651,17 @@ model ReceiptLineMatch {
   receiptLineId String
   productId     String?
   status        ReceiptMatchStatus
+  source        String
+  rank          Int @default(1)
   internalScore Decimal? @db.Decimal(5, 4)
   selected      Boolean @default(false)
+  userConfirmed Boolean @default(false)
   createdAt     DateTime @default(now())
   store         Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
   receiptLine   ReceiptLine @relation(fields: [receiptLineId], references: [id], onDelete: Cascade)
   product       Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
   @@index([storeId, receiptLineId, status])
+  @@index([storeId, productId])
 }
 
 model ReceiptConfirmation {
@@ -531,12 +669,68 @@ model ReceiptConfirmation {
   storeId       String
   receiptId     String @unique
   confirmedById String
+  idempotencyKey String
+  payloadHash   String
   correlationId String
+  includedLineCount Int
+  excludedLineCount Int
+  totalQuantity Int
   confirmedAt   DateTime @default(now())
   store         Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
   receipt       Receipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
   confirmedBy   User @relation("ReceiptConfirmer", fields: [confirmedById], references: [id], onDelete: Restrict)
+  movements     InventoryMovement[]
+  reversal      ReceiptReversal?
+  @@unique([storeId, idempotencyKey])
   @@index([storeId, confirmedAt])
+}
+
+model ReceiptReversal {
+  id             String @id @default(cuid())
+  storeId        String
+  receiptId      String @unique
+  confirmationId String @unique
+  reversedById   String
+  reason         String
+  correlationId  String
+  createdAt      DateTime @default(now())
+  store          Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  receipt        Receipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
+  confirmation   ReceiptConfirmation @relation(fields: [confirmationId], references: [id], onDelete: Restrict)
+  reversedBy     User @relation("ReceiptReverser", fields: [reversedById], references: [id], onDelete: Restrict)
+  @@index([storeId, createdAt])
+}
+
+model ReceiptRejection {
+  id             String @id @default(cuid())
+  storeId        String
+  receiptId      String @unique
+  rejectedById   String
+  idempotencyKey String
+  reason         String
+  correlationId  String
+  createdAt      DateTime @default(now())
+  store          Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  receipt        Receipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
+  rejectedBy     User @relation("ReceiptRejecter", fields: [rejectedById], references: [id], onDelete: Restrict)
+  @@unique([storeId, idempotencyKey])
+  @@index([storeId, createdAt])
+}
+
+model ReceiptAlias {
+  id             String @id @default(cuid())
+  storeId        String
+  normalizedText String
+  productId      String
+  sourceReceiptId String
+  active         Boolean @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  store          Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  product        Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  sourceReceipt  Receipt @relation(fields: [sourceReceiptId], references: [id], onDelete: Restrict)
+  @@unique([storeId, normalizedText])
+  @@index([storeId, productId, active])
 }
 
 model Notification {
@@ -598,8 +792,13 @@ model JobRun {
   externalId    String?
   status        JobStatus @default(QUEUED)
   attempts      Int @default(0)
+  maxAttempts   Int @default(3)
+  payloadHash   String?
   lastErrorCode String?
+  failureType   String?
   nextRetryAt   DateTime?
+  startedAt     DateTime?
+  completedAt   DateTime?
   correlationId String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -607,4 +806,5 @@ model JobRun {
   receipt       Receipt? @relation(fields: [receiptId], references: [id], onDelete: SetNull)
   @@index([storeId, status, nextRetryAt])
   @@index([receiptId])
+  @@unique([storeId, externalId])
 }

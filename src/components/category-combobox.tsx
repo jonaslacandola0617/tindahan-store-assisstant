@@ -2,6 +2,7 @@
 
 import { KeyboardEvent, useRef, useState } from "react";
 import { Icon } from "./icon";
+import { InlineLoading } from "./loading";
 
 type CategorySuggestion = { id: string; name: string; productCount: number };
 
@@ -14,8 +15,8 @@ export function CategoryCombobox({ id, label, locale, defaultValue = "" }: { id:
   const controller = useRef<AbortController | null>(null);
   const listId = `${id}-suggestions`;
   const copy = locale === "FIL"
-    ? { heading: "Mga kasalukuyang kategorya", hint: "Pumili ng kasalukuyang kategorya para maiwasan ang duplicate.", one: "produkto", many: "produkto", loading: "Naghahanap…" }
-    : { heading: "Existing categories", hint: "Choose an existing category to avoid duplicates.", one: "product", many: "products", loading: "Finding matches…" };
+    ? { heading: "Mga kasalukuyang kategorya", hint: "Pumili ng kasalukuyang kategorya para maiwasan ang duplicate.", one: "produkto", many: "produkto", loading: "Naghahanap ng kategorya" }
+    : { heading: "Existing categories", hint: "Choose an existing category to avoid duplicates.", one: "product", many: "products", loading: "Searching categories" };
   const [loading, setLoading] = useState(false);
 
   function queueSuggestions(query: string, immediate = false) {
@@ -63,9 +64,9 @@ export function CategoryCombobox({ id, label, locale, defaultValue = "" }: { id:
       onBlur={() => setOpen(false)}
       onChange={event => { setValue(event.target.value); setOpen(true); setActiveIndex(-1); queueSuggestions(event.target.value); }}
       onKeyDown={onKeyDown}/>
-    {open && <div className="category-suggestions" id={listId} role="listbox" aria-label={copy.heading}>
+    {open && <div className="category-suggestions" id={listId} role="listbox" aria-label={copy.heading} aria-busy={loading}>
       <div className="category-suggestions-header"><strong>{copy.heading}</strong><span>{copy.hint}</span></div>
-      {loading && suggestions.length === 0 ? <div className="category-suggestions-status">{copy.loading}</div>
+      {loading && suggestions.length === 0 ? <div className="category-suggestions-status"><InlineLoading message={copy.loading} size="compact"/></div>
         : suggestions.length > 0 ? <div className="category-suggestions-list">{suggestions.map((category, index) => <button id={`${id}-option-${index}`} type="button" role="option" aria-selected={activeIndex === index} className={`category-suggestion${activeIndex === index ? " is-active" : ""}`} key={category.id}
           onMouseDown={event => event.preventDefault()} onClick={() => choose(category)} onMouseEnter={() => setActiveIndex(index)}>
           <span className="category-suggestion-icon"><Icon name="tag" className="icon icon-sm"/></span><span className="category-suggestion-name">{category.name}</span><span className="category-suggestion-count">{category.productCount} {category.productCount === 1 ? copy.one : copy.many}</span>

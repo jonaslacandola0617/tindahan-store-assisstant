@@ -5,6 +5,9 @@ export default defineConfig({
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   test: {
     environment: "node",
+    // The integration suites share one remote PostgreSQL test database. Running
+    // files serially avoids artificial cross-suite deadlocks during teardown.
+    fileParallelism: false,
     testTimeout: 30_000,
     hookTimeout: 60_000,
     include: ["src/**/*.test.ts"],

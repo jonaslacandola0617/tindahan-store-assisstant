@@ -1,0 +1,19 @@
+{
+  "Records": [
+    {
+      "eventVersion": "2.1",
+      "eventSource": "aws:s3",
+      "awsRegion": "<AWS_REGION>",
+      "eventTime": "2026-08-02T00:00:00.000Z",
+      "eventName": "ObjectCreated:Put",
+      "s3": {
+        "bucket": {
+          "name": "<RECEIPT_S3_BUCKET>"
+        },
+        "object": {
+          "key": "receipts%2F%3CSTORE_ID%3E%2F2026%2F08%2F%3CRECEIPT_ID%3E%2F%3CFILE_ID%3E.jpg"
+        }
+      }
+    }
+  ]
+}
