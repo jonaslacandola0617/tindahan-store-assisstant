@@ -1,7 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { database } from "@/platform/persistence/prisma";
 import { hashPassword } from "@/modules/identity/domain/password";
-import { acceptStaffInvitation, assertStoreMayWrite, invitationPreview, inviteStaff, revokeStaffInvitation, updateSettings } from "./saas-service";
+import { acceptStaffInvitation, assertStoreMayWrite, changePassword, invitationPreview, inviteStaff, revokeStaffInvitation, updateSettings } from "./saas-service";
+import { verifyPassword } from "@/modules/identity/domain/password";
 
 const databaseTests = process.env.TEST_DATABASE_URL || process.env.TEST_DATABASE ? describe : describe.skip;
 
@@ -38,7 +39,16 @@ databaseTests("Phase 7 staff invitation integration", () => {
   it("allows Staff to update their account without changing owner-only store preferences", async () => {
     await updateSettings(staffId, { name: "Updated Staff", phone: "09170000000", language: "FIL", theme: "DARK", lowStockEnabled: false, dailySummaryEnabled: false, receiptNotifications: false, receiptRetentionDays: 365 });
     expect(await database().user.findUnique({ where: { id: staffId }, select: { name: true, preferredLanguage: true, preferredTheme: true } })).toEqual({ name: "Updated Staff", preferredLanguage: "FIL", preferredTheme: "DARK" });
-    expect(await database().storePreference.findUnique({ where: { storeId }, select: { lowStockEnabled: true, receiptRetentionDays: true } })).toEqual({ lowStockEnabled: true, receiptRetentionDays: 2555 });
+    expect(await database().storePreference.findUnique({ where: { storeId }, select: { lowStockEnabled: true, receiptRetentionDays: true } })).toEqual({ lowStockEnabled: true, receiptRetentionDays: 365 });
+  });
+
+  it("changes a password only after current-password and confirmation checks", async () => {
+    await expect(changePassword(ownerId, { currentPassword: "wrong", newPassword: "New-Tindahan-2026!", confirmPassword: "New-Tindahan-2026!" })).rejects.toMatchObject({ code: "CURRENT_PASSWORD" });
+    await expect(changePassword(ownerId, { currentPassword: "Tindahan-Phase7!", newPassword: "New-Tindahan-2026!", confirmPassword: "different" })).rejects.toBeDefined();
+    await expect(changePassword(ownerId, { currentPassword: "Tindahan-Phase7!", newPassword: "New-Tindahan-2026!", confirmPassword: "New-Tindahan-2026!" })).resolves.toEqual({ ok: true });
+    const passwordHash = (await database().user.findUniqueOrThrow({ where: { id: ownerId }, select: { passwordHash: true } })).passwordHash!;
+    await expect(verifyPassword("Tindahan-Phase7!", passwordHash)).resolves.toBe(false);
+    await expect(verifyPassword("New-Tindahan-2026!", passwordHash)).resolves.toBe(true);
   });
 
   it("keeps restricted stores readable while centrally rejecting business writes", async () => {

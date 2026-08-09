@@ -1,14 +1,22 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "./icon";
+import { applyThemePreference, THEME_CHANGED_EVENT } from "./theme-preference";
 
 export function ThemeToggle() {
   const [dark, setDark] = useState(false);
-  function toggle() {
+  useEffect(() => {
+    const sync = () => setDark(document.documentElement.dataset.theme === "dark");
+    sync();
+    window.addEventListener(THEME_CHANGED_EVENT, sync);
+    return () => window.removeEventListener(THEME_CHANGED_EVENT, sync);
+  }, []);
+  async function toggle() {
     const next = !dark;
-    setDark(next);
-    document.documentElement.dataset.theme = next ? "dark" : "light";
-    void fetch("/api/preferences", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ theme: next ? "DARK" : "LIGHT" }) });
+    const previous = dark ? "DARK" : "LIGHT";
+    applyThemePreference(next ? "DARK" : "LIGHT");
+    const response = await fetch("/api/preferences", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ theme: next ? "DARK" : "LIGHT" }) });
+    if (!response.ok) applyThemePreference(previous);
   }
   return <button className="btn-icon btn-ghost" type="button" aria-label="Toggle dark mode" aria-pressed={dark} onClick={toggle}><Icon name="moon" /></button>;
 }

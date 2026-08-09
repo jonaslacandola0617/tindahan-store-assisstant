@@ -5,24 +5,9 @@ import { serverEnvironment } from "@/platform/environment/server";
 import { resolveStoreContext } from "@/modules/stores/application/store-context";
 import { hashPassword, verifyPassword } from "@/modules/identity/domain/password";
 import { effectivePlanState, mayWriteBusinessData, type PlanState } from "../domain/subscription";
+import { passwordChangeInput, settingsInput } from "../domain/settings";
 import { SaasError } from "./errors";
-
-const settingsInput = z.object({
-  name: z.string().trim().min(2).max(100),
-  phone: z.string().trim().max(40).optional().nullable(),
-  storeName: z.string().trim().min(2).max(100).optional(),
-  storeType: z.enum(["Sari-sari store", "Mini-mart", "Convenience store", "Other small store"]).optional(),
-  address: z.string().trim().max(240).optional().nullable(),
-  contact: z.string().trim().max(80).optional().nullable(),
-  language: z.enum(["EN", "FIL"]),
-  theme: z.enum(["SYSTEM", "LIGHT", "DARK"]),
-  lowStockEnabled: z.boolean(),
-  dailySummaryEnabled: z.boolean(),
-  receiptNotifications: z.boolean(),
-  receiptRetentionDays: z.union([z.literal(365), z.literal(1095), z.literal(2555)]),
-});
 const inviteInput = z.object({ email: z.string().trim().toLowerCase().email() });
-const passwordInput = z.object({ currentPassword: z.string().min(1).max(128), newPassword: z.string().min(10).max(128) });
 const acceptInput = z.object({ token: z.string().min(32), name: z.string().trim().min(2).max(100).optional(), password: z.string().min(10).max(128).optional() });
 
 function tokenHash(token: string) { return createHash("sha256").update(token).digest("hex"); }
@@ -75,9 +60,14 @@ export async function updateSettings(userId: string, raw: unknown) {
 }
 
 export async function changePassword(userId: string, raw: unknown) {
-  const value = passwordInput.parse(raw); const user = await database().user.findUnique({ where: { id: userId } });
+  const value = passwordChangeInput.parse(raw); const user = await database().user.findUnique({ where: { id: userId } });
   if (!user?.passwordHash || !await verifyPassword(value.currentPassword, user.passwordHash)) throw new SaasError("CURRENT_PASSWORD", "The current password is incorrect.", 400);
-  await database().user.update({ where: { id: userId }, data: { passwordHash: await hashPassword(value.newPassword) } });
+  const { store } = await contextFor(userId);
+  const passwordHash = await hashPassword(value.newPassword);
+  await database().$transaction(async transaction => {
+    await transaction.user.update({ where: { id: userId }, data: { passwordHash } });
+    await transaction.auditEvent.create({ data: { storeId: store.id, actorId: userId, action: "PASSWORD_CHANGED", entityType: "User", entityId: userId, correlationId: randomUUID() } });
+  });
   return { ok: true };
 }
 

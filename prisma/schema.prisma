@@ -290,7 +290,7 @@ model StorePreference {
   dailySummaryEnabled Boolean @default(true)
   receiptNotifications Boolean @default(true)
   inventoryView      InventoryView @default(LIST)
-  receiptRetentionDays Int @default(2555)
+  receiptRetentionDays Int @default(365)
   store              Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
 }
 

@@ -1,6 +1,8 @@
 /* eslint-disable @next/next/no-page-custom-font -- the prototype's exact Google Fonts request is the visual contract. */
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { ThemeRuntime } from "@/components/theme-runtime";
+import type { ThemePreference } from "@/components/theme-preference";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,15 +14,19 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const locale = (await cookies()).get("tindahan-language")?.value === "FIL" ? "fil" : "en";
+  const cookieStore = await cookies();
+  const locale = cookieStore.get("tindahan-language")?.value === "FIL" ? "fil" : "en";
+  const storedTheme = cookieStore.get("tindahan-theme")?.value;
+  const themePreference: ThemePreference = storedTheme === "DARK" || storedTheme === "LIGHT" ? storedTheme : "SYSTEM";
+  const initialTheme = themePreference === "DARK" ? "dark" : "light";
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} data-theme={initialTheme} data-theme-preference={themePreference} style={{ colorScheme: initialTheme }} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
       </head>
-      <body>{children}</body>
+      <body><ThemeRuntime preference={themePreference}/>{children}</body>
     </html>
   );
 }

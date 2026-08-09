@@ -131,6 +131,7 @@ html[lang="fil"] .route-loading-label-fil { display: inline; }
 .settings-card { overflow: hidden; }
 .settings-fields { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5); }
 .settings-row, .settings-password-row, .settings-plan-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); min-height: 76px; padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--color-border); }
+.settings-password-editor { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-canvas); }
 
 .password-input-wrap { position: relative; width: 100%; }
 .password-input-wrap .input { width: 100%; padding-right: 3.5rem; }

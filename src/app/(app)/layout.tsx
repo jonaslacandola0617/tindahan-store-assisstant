@@ -8,6 +8,8 @@ import { serverEnvironment } from "@/platform/environment/server";
 import { searchProducts } from "@/modules/inventory/application/inventory-service";
 import { receiptAttentionCount } from "@/modules/receipts/application/receipt-service";
 import { notificationUnreadCount } from "@/modules/operating-view/application/operating-view-service";
+import { getUserPresentationPreferences } from "@/modules/identity/application/user-preferences";
+import { ThemeRuntime } from "@/components/theme-runtime";
 
 export default async function ProtectedLayout({
   children,
@@ -22,11 +24,11 @@ export default async function ProtectedLayout({
   if (!context) redirect("/onboarding");
   const locale =
     (await cookies()).get("tindahan-language")?.value === "FIL" ? "FIL" : "EN";
-  const [inventoryAttention, receiptAttention, notificationAttention] = serverEnvironment.demoMode
-    ? [0, 0, 0]
-    : await Promise.all([searchProducts(session.user.id, { limit: 1 }).then(result => result.counts.low), receiptAttentionCount(session.user.id), notificationUnreadCount(session.user.id)]);
+  const [inventoryAttention, receiptAttention, notificationAttention, presentationPreference] = serverEnvironment.demoMode
+    ? [0, 0, 0, { preferredTheme: "SYSTEM" as const }]
+    : await Promise.all([searchProducts(session.user.id, { limit: 1 }).then(result => result.counts.low), receiptAttentionCount(session.user.id), notificationUnreadCount(session.user.id), getUserPresentationPreferences(session.user.id)]);
   return (
-    <AppShell
+    <><ThemeRuntime preference={presentationPreference.preferredTheme}/><AppShell
       storeName={context.store.name}
       role={context.role}
       locale={locale}
@@ -35,6 +37,6 @@ export default async function ProtectedLayout({
       notificationAttention={notificationAttention}
     >
       {children}
-    </AppShell>
+    </AppShell></>
   );
 }

@@ -39,7 +39,7 @@ export async function initializeReceiptUpload(userId: string, origin: string, ra
   const requestHash = hash(file);
   const correlationId = randomUUID();
   const preference = await database().storePreference.findUnique({ where: { storeId: store.id }, select: { receiptRetentionDays: true } });
-  const retentionDays = preference?.receiptRetentionDays ?? 2555;
+  const retentionDays = preference?.receiptRetentionDays ?? 365;
   const prepared = await database().$transaction(async tx => {
     const prior = await tx.idempotencyKey.findUnique({ where: { storeId_scope_key: { storeId: store.id, scope: "INIT_RECEIPT_UPLOAD", key: input.idempotencyKey } } });
     if (prior) {
