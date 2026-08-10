@@ -3,7 +3,6 @@ import { database } from "@/platform/persistence/prisma";
 import { storeInput } from "@/modules/stores/domain/store";
 import { hashPassword } from "../domain/password";
 import { registrationInput } from "../domain/registration";
-import { serverEnvironment } from "@/platform/environment/server";
 
 export const ownerStoreRegistrationInput = z.object({
   account: registrationInput,
@@ -37,7 +36,7 @@ export async function registerOwnerStore(input: unknown) {
           },
         },
         memberships: { create: { userId: user.id, role: "OWNER", status: "ACTIVE" } },
-        subscription: { create: { plan: "TRIAL", status: "TRIALING", trialEndsAt: new Date(Date.now() + serverEnvironment.TRIAL_DAYS * 86_400_000) } },
+        subscription: { create: { plan: "PILOT", status: "ACTIVE" } },
       },
       select: { id: true, name: true },
     });
