@@ -41,6 +41,18 @@ const recurringPlanResponse = z.object({
   actions: z.array(z.object({ url: z.string().url(), action: z.string().optional(), method: z.string().optional() }).passthrough()).optional(),
 }).passthrough();
 
+function nextMonthlyAnchor(now = new Date()) {
+  const nextMonth = new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth() + 1,
+    Math.min(now.getUTCDate(), 28),
+    now.getUTCHours(),
+    now.getUTCMinutes(),
+    now.getUTCSeconds(),
+  ));
+  return nextMonth.toISOString();
+}
+
 export class XenditBillingProvider implements BillingProvider {
   readonly id = "xendit" as const;
   constructor(private readonly secretKey = serverEnvironment.XENDIT_SECRET_KEY!, private readonly request: typeof fetch = fetch) {}
@@ -78,13 +90,23 @@ export class XenditBillingProvider implements BillingProvider {
       customer_id: input.customerId,
       currency: "PHP",
       amount: input.amount,
-      schedule: { reference_id: `${input.referenceId}-monthly`, interval: "MONTH", interval_count: 1 },
-      immediate_action_type: "FULL_AMOUNT",
-      notification_config: { recurring_created: ["EMAIL"], recurring_succeeded: ["EMAIL"], recurring_failed: ["EMAIL"] },
+      payment_tokens: [],
+      schedule: {
+        interval: "MONTH",
+        interval_count: 1,
+        anchor_date: nextMonthlyAnchor(),
+        retry_interval: "DAY",
+        retry_interval_count: 1,
+        total_retry: 3,
+        failed_attempt_notifications: [1, 2, 3],
+      },
+      immediate_payment: true,
+      notification_channels: ["EMAIL"],
       failed_cycle_action: "RESUME",
+      payment_link_for_failed_attempt: true,
+      locale: "en",
       metadata: { application: "tindahan" },
-      success_return_url: input.returnUrl,
-      failure_return_url: input.returnUrl,
+      description: "Tindahan Standard monthly subscription",
     }) }, "2026-01-01", idempotencyKey);
     const parsed = recurringPlanResponse.safeParse(raw);
     if (!parsed.success) throw new BillingProviderError("INVALID_RESPONSE");
