@@ -1,6 +1,7 @@
 import { database } from "@/platform/persistence/prisma";
 import { serverEnvironment } from "@/platform/environment/server";
 import { logger } from "@/platform/logging/logger";
+import { resolveStoreContext } from "@/modules/stores/application/store-context";
 import {
   dailyStoreSummaryEmail,
   deliverEmail,
@@ -43,17 +44,35 @@ async function storeNotificationContext(storeId: string) {
   });
 }
 
+async function deliverStockItems(input: { storeId: string; eventKey: string; items: StockEmailItem[] }) {
+  const context = await storeNotificationContext(input.storeId);
+  if (!context || context.preference?.lowStockEnabled === false || !input.items.length) return { sent: 0, skipped: true };
+  const items = [...input.items].sort((left, right) => Number(right.status === "OUT") - Number(left.status === "OUT") || left.name.localeCompare(right.name));
+  const inventoryUrl = absoluteAppUrl(items.every(item => item.status === "OUT") ? "/inventory?filter=out" : "/inventory?filter=low");
+  let sent = 0;
+  for (const membership of context.memberships) {
+    const owner = membership.user;
+    const result = await deliverEmail({
+      storeId: context.id,
+      userId: owner.id,
+      kind: "STOCK_ALERT",
+      recipient: owner.email,
+      idempotencyKey: `operational-stock:${owner.id}:${input.eventKey}`,
+      email: stockAttentionEmail(context.name, items, inventoryUrl, owner.preferredLanguage as OperationalEmailLocale),
+    });
+    if (result.status === "SENT") sent += 1;
+  }
+  return { sent, skipped: false };
+}
+
 export async function sendStockAlertsForSource(input: { storeId: string; sourceType: string; sourceId: string; eventKey: string }) {
   try {
-    const [context, movements] = await Promise.all([
-      storeNotificationContext(input.storeId),
-      database().inventoryMovement.findMany({
-        where: { storeId: input.storeId, sourceType: input.sourceType, sourceId: input.sourceId },
-        orderBy: { createdAt: "asc" },
-        include: { product: { select: { id: true, name: true, lowStockThreshold: true, sellingUnit: true, otherUnitRaw: true } } },
-      }),
-    ]);
-    if (!context || context.preference?.lowStockEnabled === false || !movements.length) return { sent: 0, skipped: true };
+    const movements = await database().inventoryMovement.findMany({
+      where: { storeId: input.storeId, sourceType: input.sourceType, sourceId: input.sourceId },
+      orderBy: { createdAt: "asc" },
+      include: { product: { select: { id: true, name: true, lowStockThreshold: true, sellingUnit: true, otherUnitRaw: true } } },
+    });
+    if (!movements.length) return { sent: 0, skipped: true };
 
     const byProduct = new Map<string, StockEmailItem>();
     for (const movement of movements) {
@@ -69,25 +88,47 @@ export async function sendStockAlertsForSource(input: { storeId: string; sourceT
       if (!existing || status === "OUT") byProduct.set(movement.product.id, candidate);
     }
 
-    const items = [...byProduct.values()].sort((left, right) => Number(right.status === "OUT") - Number(left.status === "OUT") || left.name.localeCompare(right.name));
-    if (!items.length) return { sent: 0, skipped: true };
-    const inventoryUrl = absoluteAppUrl(items.every(item => item.status === "OUT") ? "/inventory?filter=out" : "/inventory?filter=low");
-    let sent = 0;
-    for (const membership of context.memberships) {
-      const owner = membership.user;
-      const result = await deliverEmail({
-        storeId: context.id,
-        userId: owner.id,
-        kind: "STOCK_ALERT",
-        recipient: owner.email,
-        idempotencyKey: `operational-stock:${owner.id}:${input.eventKey}`,
-        email: stockAttentionEmail(context.name, items, inventoryUrl, owner.preferredLanguage as OperationalEmailLocale),
-      });
-      if (result.status === "SENT") sent += 1;
-    }
-    return { sent, skipped: false };
+    return await deliverStockItems({ storeId: input.storeId, eventKey: input.eventKey, items: [...byProduct.values()] });
   } catch (error) {
     logger.warn("operational_stock_email_failed", { storeId: input.storeId, eventKey: input.eventKey, error: error instanceof Error ? error.name : "unknown" });
+    return { sent: 0, skipped: false, failed: true };
+  }
+}
+
+export async function sendStockAlertsForUserSource(input: { userId: string; sourceType: string; sourceId: string; eventKey: string }) {
+  try {
+    const context = await resolveStoreContext(input.userId);
+    if (!context) return { sent: 0, skipped: true };
+    return await sendStockAlertsForSource({ storeId: context.store.id, sourceType: input.sourceType, sourceId: input.sourceId, eventKey: input.eventKey });
+  } catch (error) {
+    logger.warn("operational_stock_email_context_failed", { userId: input.userId, eventKey: input.eventKey, error: error instanceof Error ? error.name : "unknown" });
+    return { sent: 0, skipped: false, failed: true };
+  }
+}
+
+export async function sendStockAlertForMovement(userId: string, movementId: string) {
+  try {
+    const context = await resolveStoreContext(userId);
+    if (!context) return { sent: 0, skipped: true };
+    const movement = await database().inventoryMovement.findFirst({
+      where: { id: movementId, storeId: context.store.id },
+      include: { product: { select: { name: true, lowStockThreshold: true, sellingUnit: true, otherUnitRaw: true } } },
+    });
+    if (!movement) return { sent: 0, skipped: true };
+    const status = classifyStockTransition(movement.previousQuantity, movement.resultingQuantity, movement.product.lowStockThreshold);
+    if (!status) return { sent: 0, skipped: true };
+    return await deliverStockItems({
+      storeId: context.store.id,
+      eventKey: `movement:${movement.id}`,
+      items: [{
+        name: movement.product.name,
+        quantity: movement.resultingQuantity,
+        unit: unitLabel(movement.product.sellingUnit, movement.product.otherUnitRaw),
+        status,
+      }],
+    });
+  } catch (error) {
+    logger.warn("operational_stock_movement_email_failed", { userId, movementId, error: error instanceof Error ? error.name : "unknown" });
     return { sent: 0, skipped: false, failed: true };
   }
 }
@@ -137,7 +178,7 @@ function manilaDay(now: Date) {
     month: "2-digit",
     day: "2-digit",
   }).formatToParts(now);
-  const value = (type: Intl.DateTimeFormatPartTypes) => Number(parts.find(part => part.type === type)?.value);
+  const value = (type: "year" | "month" | "day") => Number(parts.find(part => part.type === type)?.value);
   const year = value("year");
   const month = value("month");
   const day = value("day");
