@@ -10,7 +10,9 @@ import { PasswordInput } from "@/components/password-input";
 import { applyThemePreference, type ThemePreference } from "@/components/theme-preference";
 import { loadingCopy } from "@/modules/i18n/messages";
 import { isPhoneNumber, sanitizePhoneInput } from "@/modules/saas/domain/settings";
+import { AccountDeactivation } from "./account-deactivation";
 import { InvitationResult } from "./invitation-result";
+import { StaffMemberRows } from "./staff-member-rows";
 
 type SettingsData = {
   role: "OWNER" | "STAFF";
@@ -110,12 +112,17 @@ export function SettingsClient({ initial, initialBilling, locale }: { initial: S
     setPending(true);
     try {
       const response = await fetch("/api/settings/password", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(passwords) });
-      await responseMessage(response, t.genericError); setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" }); setPasswordOpen(false); setToast(t.passwordSaved);
+      await responseMessage(response, t.genericError);
+      setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setPasswordOpen(false);
+      setToast(t.passwordSaved);
     } catch (cause) { setPasswordError(cause instanceof Error ? cause.message : t.genericError); }
     finally { setPending(false); }
   }
 
-  function passwordKeyDown(event: KeyboardEvent<HTMLDivElement>) { if (event.key === "Enter") { event.preventDefault(); void changePassword(); } }
+  function passwordKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Enter") { event.preventDefault(); void changePassword(); }
+  }
 
   async function invite(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -235,7 +242,7 @@ export function SettingsClient({ initial, initialBilling, locale }: { initial: S
         <form className="settings-invite-form" onSubmit={invite}><input className="input" name="email" type="email" placeholder="staff@example.com" aria-label={t.inviteEmail} required/><button className="btn btn-secondary" disabled={pending}><Icon name="plus"/>{t.invite}</button></form>
         {inviteUrl && activeInvite && <InvitationResult locale={locale} email={activeInvite.email} status={activeInvite.emailStatus} inviteUrl={inviteUrl} onCopied={() => setToast(t.copied)}/>}
         <div className="settings-team-list">
-          {data.members.map(member => <div className="row-item" key={member.id}><span className="avatar">{(member.user.name || member.user.email).slice(0, 2).toUpperCase()}</span><span className="row-main"><span className="row-title">{member.user.name || member.user.email}</span><span className="row-meta">{member.user.email} · {member.role === "OWNER" ? "Owner" : "Staff"}</span></span><span className="badge badge-success">{t.active}</span></div>)}
+          <StaffMemberRows initialMembers={data.members} locale={locale}/>
           {data.invitations.map(invitation => <div className="row-item" key={invitation.id}><span className="avatar"><Icon name="plus"/></span><span className="row-main"><span className="row-title">{invitation.email}</span><span className="row-meta">{invitation.emailStatus === "SENT" ? t.emailSent : invitation.emailStatus === "FAILED" ? t.emailFailed : t.pending}</span></span><span className="settings-row-actions">{inviteLinkId === invitation.id && <button className="btn btn-ghost btn-sm" type="button" onClick={async () => { await navigator.clipboard.writeText(inviteUrl); setToast(t.copied); }}>{t.copyLink}</button>}<button className="btn btn-ghost btn-sm" type="button" disabled={pending} onClick={() => void resend(invitation.id)}>{t.resend}</button><button className="btn btn-ghost btn-sm" type="button" disabled={pending} onClick={() => void revoke(invitation.id)}>{t.revoke}</button></span></div>)}
         </div>
       </SettingsGroup>
@@ -244,6 +251,7 @@ export function SettingsClient({ initial, initialBilling, locale }: { initial: S
       <SettingsGroup title={t.billingHistory}>{billing.statements.length === 0 ? <p className="text-muted settings-empty">{t.noBilling}</p> : <div className="settings-team-list">{billing.statements.map(item => <div className="row-item" key={item.id}><span className="avatar"><Icon name="receipt"/></span><span className="row-main"><span className="row-title">{item.statementNumber}</span><span className="row-meta">{new Date(item.createdAt).toLocaleDateString(locale === "FIL" ? "fil-PH" : "en-PH")} · {new Intl.NumberFormat("en-PH", { style: "currency", currency: item.currency }).format(Number(item.total))}</span></span><a className="btn btn-ghost btn-sm" href={`/settings/billing/statements/${item.id}`}>{t.statement}</a></div>)}</div>}</SettingsGroup>
     </>}
 
+    <AccountDeactivation locale={locale} isOwner={owner}/>
     <AppToast message={toast} locale={locale} onDismiss={() => setToast("")}/>
   </>;
 }
