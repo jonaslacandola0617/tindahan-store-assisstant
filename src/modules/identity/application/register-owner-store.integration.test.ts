@@ -16,7 +16,7 @@ databaseTests("owner and store registration PostgreSQL integration", () => {
     if (userId) await db.user.deleteMany({ where: { id: userId } });
   });
 
-  it("creates the owner, store, membership, and preferences atomically", async () => {
+  it("creates the owner, store, membership, preferences, and pilot access atomically", async () => {
     const result = await registerOwnerStore({
       account: { name: "Audit Owner", email, password: "Tindahan-Audit-2026!" },
       store: {
@@ -38,7 +38,7 @@ databaseTests("owner and store registration PostgreSQL integration", () => {
       name: "Authentication Audit Store",
       storeType: "Mini-mart",
       preference: { defaultLanguage: "FIL", lowStockEnabled: false, dailySummaryEnabled: false },
-      subscription: { plan: "TRIAL", status: "TRIALING" },
+      subscription: { plan: "PILOT", status: "ACTIVE" },
     });
     expect(stored?.memberships).toEqual([expect.objectContaining({ userId, role: "OWNER", status: "ACTIVE" })]);
   });
