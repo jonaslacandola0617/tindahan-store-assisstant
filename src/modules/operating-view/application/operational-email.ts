@@ -29,6 +29,11 @@ function unitLabel(sellingUnit: string, otherUnitRaw: string | null) {
   return (otherUnitRaw || sellingUnit).toLowerCase();
 }
 
+function lambdaNeedsRealEmailProvider() {
+  const lambdaRuntime = Boolean(serverEnvironment.AWS_LAMBDA_FUNCTION_NAME || serverEnvironment.AWS_EXECUTION_ENV?.startsWith("AWS_Lambda_"));
+  return lambdaRuntime && serverEnvironment.EMAIL_PROVIDER !== "resend";
+}
+
 async function storeNotificationContext(storeId: string) {
   return database().store.findUnique({
     where: { id: storeId },
@@ -135,6 +140,10 @@ export async function sendStockAlertForMovement(userId: string, movementId: stri
 
 export async function sendReceiptStatusAlert(receiptId: string, expectedStatus: "REVIEW_READY" | "FAILED") {
   try {
+    if (lambdaNeedsRealEmailProvider()) {
+      logger.warn("receipt_email_provider_not_configured", { receiptId, status: expectedStatus });
+      return { sent: 0, skipped: true };
+    }
     const receipt = await database().receipt.findUnique({
       where: { id: receiptId },
       select: { id: true, storeId: true, status: true, supplierText: true, _count: { select: { lines: true } } },
