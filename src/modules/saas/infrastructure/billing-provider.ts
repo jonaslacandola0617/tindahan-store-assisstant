@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { serverEnvironment } from "@/platform/environment/server";
+import { logger } from "@/platform/logging/logger";
 import type { PlanState } from "../domain/subscription";
 
 export type BillingTransition = { status: PlanState; currentPeriodEndsAt?: Date | null; graceEndsAt?: Date | null };
@@ -41,17 +42,28 @@ const recurringPlanResponse = z.object({
   payment_link_url: z.string().url().nullish(),
   actions: z.array(z.object({ url: z.string().url(), action: z.string().optional(), method: z.string().optional() }).passthrough()).optional(),
 }).passthrough();
+const providerErrorResponse = z.object({ error_code: z.string().optional() }).passthrough();
+
+function xenditCustomerName(value: string) {
+  const normalized = value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Za-z0-9 ]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 50);
+  return normalized || "Tindahan Owner";
+}
 
 function nextMonthlyAnchor(now = new Date()) {
-  const nextMonth = new Date(Date.UTC(
+  return new Date(Date.UTC(
     now.getUTCFullYear(),
     now.getUTCMonth() + 1,
     Math.min(now.getUTCDate(), 28),
     now.getUTCHours(),
     now.getUTCMinutes(),
     now.getUTCSeconds(),
-  ));
-  return nextMonth.toISOString();
+  )).toISOString();
 }
 
 export class XenditBillingProvider implements BillingProvider {
@@ -71,7 +83,18 @@ export class XenditBillingProvider implements BillingProvider {
       },
       signal: init.signal ?? AbortSignal.timeout(15_000),
     }).catch(() => { throw new BillingProviderError("UNAVAILABLE"); });
+
     if (response.ok) return response.json() as Promise<unknown>;
+
+    let providerCode: string | undefined;
+    try {
+      const parsed = providerErrorResponse.safeParse(await response.clone().json());
+      providerCode = parsed.success ? parsed.data.error_code : undefined;
+    } catch {
+      providerCode = undefined;
+    }
+    logger.error("billing_provider_failed", { provider: "xendit", operation: path, status: response.status, providerCode });
+
     if (response.status === 401 || response.status === 403) throw new BillingProviderError("AUTH");
     if (response.status === 429) throw new BillingProviderError("RATE_LIMITED");
     if (response.status >= 500) throw new BillingProviderError("UNAVAILABLE");
@@ -79,40 +102,52 @@ export class XenditBillingProvider implements BillingProvider {
   }
 
   async createCustomer(input: BillingCustomerInput, idempotencyKey: string) {
-    const raw = await this.send("/customers", { method: "POST", body: JSON.stringify({ reference_id: input.referenceId, type: "INDIVIDUAL", individual_detail: { given_names: input.name }, email: input.email }) }, "2020-10-31", idempotencyKey);
+    const raw = await this.send("/customers", {
+      method: "POST",
+      body: JSON.stringify({
+        reference_id: input.referenceId,
+        type: "INDIVIDUAL",
+        individual_detail: { given_names: xenditCustomerName(input.name) },
+        email: input.email,
+      }),
+    }, "2020-10-31", idempotencyKey);
     const parsed = customerResponse.safeParse(raw);
     if (!parsed.success) throw new BillingProviderError("INVALID_RESPONSE");
     return parsed.data.id;
   }
 
   async createRecurringPlan(input: RecurringPlanInput, idempotencyKey: string) {
-    const raw = await this.send("/recurring/plans", { method: "POST", body: JSON.stringify({
-      reference_id: input.referenceId,
-      customer_id: input.customerId,
-      currency: "PHP",
-      amount: input.amount,
-      payment_tokens: [],
-      schedule: {
-        interval: "MONTH",
-        interval_count: 1,
-        anchor_date: nextMonthlyAnchor(),
-        retry_interval: "DAY",
-        retry_interval_count: 1,
-        total_retry: 3,
-        failed_attempt_notifications: [1, 2, 3],
-      },
-      immediate_payment: true,
-      notification_channels: ["EMAIL"],
-      failed_cycle_action: "RESUME",
-      payment_link_for_failed_attempt: true,
-      locale: "en",
-      metadata: { application: "tindahan" },
-      description: "Tindahan Standard monthly subscription",
-    }) }, "2026-01-01", idempotencyKey);
+    const raw = await this.send("/recurring/plans", {
+      method: "POST",
+      body: JSON.stringify({
+        reference_id: input.referenceId,
+        customer_id: input.customerId,
+        currency: "PHP",
+        amount: input.amount,
+        payment_tokens: [],
+        schedule: {
+          interval: "MONTH",
+          interval_count: 1,
+          anchor_date: nextMonthlyAnchor(),
+          retry_interval: "DAY",
+          retry_interval_count: 1,
+          total_retry: 3,
+          failed_attempt_notifications: [1, 2, 3],
+        },
+        immediate_payment: true,
+        notification_channels: ["EMAIL"],
+        failed_cycle_action: "RESUME",
+        payment_link_for_failed_attempt: true,
+        locale: "en",
+        metadata: { application: "tindahan" },
+        description: "Tindahan Standard monthly subscription",
+      }),
+    }, "2026-01-01", idempotencyKey);
     const parsed = recurringPlanResponse.safeParse(raw);
     if (!parsed.success) throw new BillingProviderError("INVALID_RESPONSE");
-    const action = parsed.data.actions?.find(item => item.method?.toUpperCase() === "GET" || item.action?.toUpperCase().includes("AUTH")) ?? parsed.data.actions?.[0];
-    return { providerPlanId: parsed.data.id, checkoutUrl: parsed.data.payment_link_url ?? action?.url ?? null };
+    const authAction = parsed.data.actions?.find(item => item.action?.toUpperCase() === "AUTH");
+    const getAction = parsed.data.actions?.find(item => item.method?.toUpperCase() === "GET");
+    return { providerPlanId: parsed.data.id, checkoutUrl: parsed.data.payment_link_url ?? authAction?.url ?? getAction?.url ?? parsed.data.actions?.[0]?.url ?? null };
   }
 
   async deactivatePlan(providerPlanId: string) {
