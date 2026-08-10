@@ -1,12 +1,18 @@
 import { cookies } from "next/headers";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
 import { AuthVisual } from "@/components/auth-visual";
 import { LanguageToggle } from "@/components/language-toggle";
 import { dictionary } from "@/modules/i18n/messages";
+import { authOptions } from "@/modules/identity/infrastructure/auth-options";
 import { SignInForm } from "./sign-in-form";
 
 export const metadata = { title: "Sign in" };
 
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ callbackUrl?: string }> }) {
+  const session = await getServerSession(authOptions);
+  if (session?.user.id) redirect("/dashboard");
+
   const locale = (await cookies()).get("tindahan-language")?.value === "FIL" ? "FIL" : "EN";
   const copy = dictionary(locale);
   const requested = (await searchParams).callbackUrl;
