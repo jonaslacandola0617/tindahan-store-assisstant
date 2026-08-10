@@ -38,6 +38,7 @@ export class MockBillingProvider implements BillingProvider {
 const customerResponse = z.object({ id: z.string().min(1) });
 const recurringPlanResponse = z.object({
   id: z.string().min(1),
+  payment_link_url: z.string().url().nullish(),
   actions: z.array(z.object({ url: z.string().url(), action: z.string().optional(), method: z.string().optional() }).passthrough()).optional(),
 }).passthrough();
 
@@ -110,8 +111,8 @@ export class XenditBillingProvider implements BillingProvider {
     }) }, "2026-01-01", idempotencyKey);
     const parsed = recurringPlanResponse.safeParse(raw);
     if (!parsed.success) throw new BillingProviderError("INVALID_RESPONSE");
-    const checkout = parsed.data.actions?.find(action => action.method?.toUpperCase() === "GET" || action.action?.toUpperCase().includes("AUTH")) ?? parsed.data.actions?.[0];
-    return { providerPlanId: parsed.data.id, checkoutUrl: checkout?.url ?? null };
+    const action = parsed.data.actions?.find(item => item.method?.toUpperCase() === "GET" || item.action?.toUpperCase().includes("AUTH")) ?? parsed.data.actions?.[0];
+    return { providerPlanId: parsed.data.id, checkoutUrl: parsed.data.payment_link_url ?? action?.url ?? null };
   }
 
   async deactivatePlan(providerPlanId: string) {
