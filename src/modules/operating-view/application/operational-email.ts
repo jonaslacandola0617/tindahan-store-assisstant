@@ -111,33 +111,6 @@ export async function sendStockAlertsForUserSource(input: { userId: string; sour
   }
 }
 
-export async function sendStockAlertForMovement(userId: string, movementId: string) {
-  try {
-    const context = await resolveStoreContext(userId);
-    if (!context) return { sent: 0, skipped: true };
-    const movement = await database().inventoryMovement.findFirst({
-      where: { id: movementId, storeId: context.store.id },
-      include: { product: { select: { name: true, lowStockThreshold: true, sellingUnit: true, otherUnitRaw: true } } },
-    });
-    if (!movement) return { sent: 0, skipped: true };
-    const status = classifyStockTransition(movement.previousQuantity, movement.resultingQuantity, movement.product.lowStockThreshold);
-    if (!status) return { sent: 0, skipped: true };
-    return await deliverStockItems({
-      storeId: context.store.id,
-      eventKey: `movement:${movement.id}`,
-      items: [{
-        name: movement.product.name,
-        quantity: movement.resultingQuantity,
-        unit: unitLabel(movement.product.sellingUnit, movement.product.otherUnitRaw),
-        status,
-      }],
-    });
-  } catch (error) {
-    logger.warn("operational_stock_movement_email_failed", { userId, movementId, error: error instanceof Error ? error.name : "unknown" });
-    return { sent: 0, skipped: false, failed: true };
-  }
-}
-
 export async function sendReceiptStatusAlert(receiptId: string, expectedStatus: "REVIEW_READY" | "FAILED") {
   try {
     if (lambdaNeedsRealEmailProvider()) {
