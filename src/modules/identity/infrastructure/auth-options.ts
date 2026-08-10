@@ -31,6 +31,13 @@ export const authOptions: NextAuthOptions = {
 
         const user = await database().user.findUnique({ where: { email } });
         if (!user?.passwordHash || !(await verifyPassword(password, user.passwordHash))) return null;
+
+        const [activeMembership, pendingInvitation] = await Promise.all([
+          database().storeMembership.findFirst({ where: { userId: user.id, status: "ACTIVE" }, select: { id: true } }),
+          database().staffInvitation.findFirst({ where: { email: user.email, acceptedAt: null, revokedAt: null, expiresAt: { gt: new Date() } }, select: { id: true } }),
+        ]);
+        if (!activeMembership && !pendingInvitation) return null;
+
         await clearRateLimit("credential-sign-in", email);
         return { id: user.id, email: user.email, name: user.name };
       },
