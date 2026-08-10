@@ -12,6 +12,8 @@ describe("Tindahan transactional email templates", () => {
     expect(email.html).toContain("#1B4D3E");
     expect(email.html).toContain("Accept invitation");
     expect(email.html).toContain("https://app.example.test/invite/private-token");
+    expect(email.html).not.toContain("<img");
+    expect(email.html).toContain("border:2px solid #FFFFFF");
   });
 
   it("renders account verification using the same visual shell", () => {
