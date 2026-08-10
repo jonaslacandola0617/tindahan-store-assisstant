@@ -8,12 +8,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ rec
     const userId = await receiptUserId();
     const receiptId = (await params).receiptId;
     const result = await reverseReceipt(userId, receiptId, await request.json());
-    after(() => sendStockAlertsForUserSource({
-      userId,
-      sourceType: "RECEIPT_REVERSAL",
-      sourceId: receiptId,
-      eventKey: `receipt-reversal:${result.reversalId}`,
-    }));
+    after(async () => {
+      await sendStockAlertsForUserSource({
+        userId,
+        sourceType: "RECEIPT_REVERSAL",
+        sourceId: receiptId,
+        eventKey: `receipt-reversal:${result.reversalId}`,
+      });
+    });
     return NextResponse.json(result);
   } catch (error) {
     return receiptHttpError(error);
