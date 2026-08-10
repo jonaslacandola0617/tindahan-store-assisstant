@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { serverEnvironment } from "@/platform/environment/server";
+import { logger } from "@/platform/logging/logger";
 import type { PlanState } from "../domain/subscription";
 
 export type BillingTransition = { status: PlanState; currentPeriodEndsAt?: Date | null; graceEndsAt?: Date | null };
@@ -31,34 +32,68 @@ export class MockBillingProvider implements BillingProvider {
   readonly id = "mock" as const;
   validateTransition(input: BillingTransition) { return input; }
   async createCustomer(input: BillingCustomerInput) { return `mock_customer_${input.referenceId}`; }
-  async createRecurringPlan(input: RecurringPlanInput) { return { providerPlanId: `mock_plan_${input.referenceId}`, checkoutUrl: `${input.returnUrl}${input.returnUrl.includes("?") ? "&" : "?"}mock=1` }; }
+  async createRecurringPlan(input: RecurringPlanInput) { return { providerPlanId: `mock_session_${input.referenceId}`, checkoutUrl: `${input.returnUrl}${input.returnUrl.includes("?") ? "&" : "?"}mock=1` }; }
   async deactivatePlan() { /* deterministic no-op */ }
 }
 
 const customerResponse = z.object({ id: z.string().min(1) });
-const recurringPlanResponse = z.object({
-  id: z.string().min(1),
-  actions: z.array(z.object({ url: z.string().url(), action: z.string().optional(), method: z.string().optional() }).passthrough()).optional(),
+const subscriptionSessionResponse = z.object({
+  payment_session_id: z.string().min(1),
+  payment_link_url: z.string().url(),
 }).passthrough();
+const providerErrorResponse = z.object({ error_code: z.string().optional() }).passthrough();
+
+function xenditCustomerName(value: string) {
+  const normalized = value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Za-z0-9 ]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 50);
+  return normalized || "Tindahan Owner";
+}
+
+function nextMonthlyAnchor(now = new Date()) {
+  return new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth() + 1,
+    Math.min(now.getUTCDate(), 28),
+    now.getUTCHours(),
+    now.getUTCMinutes(),
+    now.getUTCSeconds(),
+  )).toISOString();
+}
 
 export class XenditBillingProvider implements BillingProvider {
   readonly id = "xendit" as const;
   constructor(private readonly secretKey = serverEnvironment.XENDIT_SECRET_KEY!, private readonly request: typeof fetch = fetch) {}
   validateTransition(input: BillingTransition) { return input; }
 
-  private async send(path: string, init: RequestInit, apiVersion: string, idempotencyKey?: string) {
+  private async send(path: string, init: RequestInit, options: { apiVersion?: string; idempotencyKey?: string } = {}) {
     const response = await this.request(`https://api.xendit.co${path}`, {
       ...init,
       headers: {
         authorization: `Basic ${Buffer.from(`${this.secretKey}:`).toString("base64")}`,
         "content-type": "application/json",
-        "api-version": apiVersion,
-        ...(idempotencyKey ? { "idempotency-key": idempotencyKey.slice(0, 100) } : {}),
+        ...(options.apiVersion ? { "api-version": options.apiVersion } : {}),
+        ...(options.idempotencyKey ? { "idempotency-key": options.idempotencyKey.slice(0, 100) } : {}),
         ...init.headers,
       },
       signal: init.signal ?? AbortSignal.timeout(15_000),
     }).catch(() => { throw new BillingProviderError("UNAVAILABLE"); });
+
     if (response.ok) return response.json() as Promise<unknown>;
+
+    let providerCode: string | undefined;
+    try {
+      const parsed = providerErrorResponse.safeParse(await response.clone().json());
+      providerCode = parsed.success ? parsed.data.error_code : undefined;
+    } catch {
+      providerCode = undefined;
+    }
+    logger.error("billing_provider_failed", { provider: "xendit", operation: path, status: response.status, providerCode });
+
     if (response.status === 401 || response.status === 403) throw new BillingProviderError("AUTH");
     if (response.status === 429) throw new BillingProviderError("RATE_LIMITED");
     if (response.status >= 500) throw new BillingProviderError("UNAVAILABLE");
@@ -66,34 +101,62 @@ export class XenditBillingProvider implements BillingProvider {
   }
 
   async createCustomer(input: BillingCustomerInput, idempotencyKey: string) {
-    const raw = await this.send("/customers", { method: "POST", body: JSON.stringify({ reference_id: input.referenceId, type: "INDIVIDUAL", individual_detail: { given_names: input.name }, email: input.email }) }, "2020-10-31", idempotencyKey);
+    const raw = await this.send("/customers", {
+      method: "POST",
+      body: JSON.stringify({
+        reference_id: input.referenceId,
+        type: "INDIVIDUAL",
+        individual_detail: { given_names: xenditCustomerName(input.name) },
+        email: input.email,
+      }),
+    }, { apiVersion: "2020-10-31", idempotencyKey });
     const parsed = customerResponse.safeParse(raw);
     if (!parsed.success) throw new BillingProviderError("INVALID_RESPONSE");
     return parsed.data.id;
   }
 
-  async createRecurringPlan(input: RecurringPlanInput, idempotencyKey: string) {
-    const raw = await this.send("/recurring/plans", { method: "POST", body: JSON.stringify({
-      reference_id: input.referenceId,
-      customer_id: input.customerId,
-      currency: "PHP",
-      amount: input.amount,
-      schedule: { reference_id: `${input.referenceId}-monthly`, interval: "MONTH", interval_count: 1 },
-      immediate_action_type: "FULL_AMOUNT",
-      notification_config: { recurring_created: ["EMAIL"], recurring_succeeded: ["EMAIL"], recurring_failed: ["EMAIL"] },
-      failed_cycle_action: "RESUME",
-      metadata: { application: "tindahan" },
-      success_return_url: input.returnUrl,
-      failure_return_url: input.returnUrl,
-    }) }, "2026-01-01", idempotencyKey);
-    const parsed = recurringPlanResponse.safeParse(raw);
+  // The application service keeps this provider-neutral method name, but the
+  // Xendit implementation intentionally starts with a hosted SUBSCRIPTION
+  // Payment Session. New Tindahan customers do not have a reusable payment
+  // token yet, so direct recurring-plan creation is not the correct entry point.
+  async createRecurringPlan(input: RecurringPlanInput, _idempotencyKey: string) {
+    const raw = await this.send("/sessions", {
+      method: "POST",
+      body: JSON.stringify({
+        reference_id: input.referenceId,
+        session_type: "SUBSCRIPTION",
+        mode: "PAYMENT_LINK",
+        amount: input.amount,
+        currency: "PHP",
+        country: "PH",
+        customer_id: input.customerId,
+        locale: "en",
+        description: "Tindahan Standard monthly subscription",
+        notification_channels: ["EMAIL"],
+        subscription: {
+          schedule: {
+            interval: "MONTH",
+            interval_count: 1,
+            anchor_date: nextMonthlyAnchor(),
+            retry_interval: "DAY",
+            retry_interval_count: 1,
+            total_retry: 3,
+            failed_attempt_notifications: [1, 2, 3],
+          },
+          failed_cycle_action: "RESUME",
+          payment_link_for_failed_attempt: true,
+        },
+        success_return_url: input.returnUrl,
+        cancel_return_url: `${input.returnUrl}${input.returnUrl.includes("?") ? "&" : "?"}canceled=1`,
+      }),
+    });
+    const parsed = subscriptionSessionResponse.safeParse(raw);
     if (!parsed.success) throw new BillingProviderError("INVALID_RESPONSE");
-    const checkout = parsed.data.actions?.find(action => action.method?.toUpperCase() === "GET" || action.action?.toUpperCase().includes("AUTH")) ?? parsed.data.actions?.[0];
-    return { providerPlanId: parsed.data.id, checkoutUrl: checkout?.url ?? null };
+    return { providerPlanId: parsed.data.payment_session_id, checkoutUrl: parsed.data.payment_link_url };
   }
 
   async deactivatePlan(providerPlanId: string) {
-    await this.send(`/recurring/plans/${encodeURIComponent(providerPlanId)}/deactivate`, { method: "POST", body: "{}" }, "2026-01-01");
+    await this.send(`/recurring/plans/${encodeURIComponent(providerPlanId)}/deactivate`, { method: "POST", body: "{}" }, { apiVersion: "2026-01-01" });
   }
 }
 
