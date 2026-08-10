@@ -1,6 +1,5 @@
 import { database } from "@/platform/persistence/prisma";
 import { storeInput } from "../domain/store";
-import { serverEnvironment } from "@/platform/environment/server";
 
 export async function createStoreForOwner(userId: string, input: unknown) {
   const value = storeInput.parse(input);
@@ -14,9 +13,8 @@ export async function createStoreForOwner(userId: string, input: unknown) {
       memberships: { create: { userId, role: "OWNER", status: "ACTIVE" } },
       subscription: {
         create: {
-          plan: "TRIAL",
-          status: "TRIALING",
-          trialEndsAt: new Date(Date.now() + serverEnvironment.TRIAL_DAYS * 86_400_000),
+          plan: "PILOT",
+          status: "ACTIVE",
         },
       },
     },
