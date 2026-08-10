@@ -13,5 +13,6 @@ export default async function SettingsPage() {
   if (!(await resolveStoreContext(session.user.id))) redirect("/onboarding");
   const [settings, billing, cookieStore] = await Promise.all([getSettings(session.user.id), getBillingHistory(session.user.id), cookies()]);
   const locale = cookieStore.get("tindahan-language")?.value === "FIL" ? "FIL" : "EN";
-  return <SettingsClient initial={JSON.parse(JSON.stringify(settings))} initialBilling={JSON.parse(JSON.stringify(billing))} locale={locale}/>;
+  const activeSettings = { ...settings, members: settings.members.filter(member => member.status === "ACTIVE") };
+  return <SettingsClient initial={JSON.parse(JSON.stringify(activeSettings))} initialBilling={JSON.parse(JSON.stringify(billing))} locale={locale}/>;
 }
