@@ -5,13 +5,12 @@ import { applyThemePreference, type ThemePreference } from "./theme-preference";
 
 export function ThemeRuntime({ preference }: { preference: ThemePreference }) {
   useEffect(() => {
-    applyThemePreference(preference);
+    applyThemePreference(preference, { persist: false });
     if (preference !== "SYSTEM") return;
     const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const update = () => applyThemePreference("SYSTEM");
+    const update = () => applyThemePreference("SYSTEM", { persist: false });
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
   }, [preference]);
   return null;
 }
-
