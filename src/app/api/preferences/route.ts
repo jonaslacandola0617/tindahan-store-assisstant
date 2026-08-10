@@ -6,6 +6,7 @@ import { database } from "@/platform/persistence/prisma";
 import { serverEnvironment } from "@/platform/environment/server";
 
 const input = z.object({ language: z.enum(["EN", "FIL"]).optional(), theme: z.enum(["SYSTEM", "LIGHT", "DARK"]).optional() });
+const cookieOptions = { sameSite: "lax" as const, maxAge: 31_536_000, path: "/" };
 
 export async function PATCH(request: Request) {
   const value = input.parse(await request.json());
@@ -14,7 +15,7 @@ export async function PATCH(request: Request) {
     await database().user.update({ where: { id: session.user.id }, data: { preferredLanguage: value.language, preferredTheme: value.theme } });
   }
   const response = NextResponse.json({ ok: true });
-  if (value.language) response.cookies.set("tindahan-language", value.language, { sameSite: "lax", maxAge: 31_536_000 });
-  if (value.theme) response.cookies.set("tindahan-theme", value.theme, { sameSite: "lax", maxAge: 31_536_000 });
+  if (value.language) response.cookies.set("tindahan-language", value.language, cookieOptions);
+  if (value.theme) response.cookies.set("tindahan-theme", value.theme, cookieOptions);
   return response;
 }

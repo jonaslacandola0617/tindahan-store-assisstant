@@ -4,9 +4,11 @@ import { useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AppToast } from "@/components/app-toast";
 import { Icon } from "@/components/icon";
-import { LoadingButtonContent } from "@/components/loading";
+import { persistLanguagePreference } from "@/components/language-preference";
+import { LoadingButtonContent, LoadingIcon } from "@/components/loading";
 import { PasswordInput } from "@/components/password-input";
 import { applyThemePreference, type ThemePreference } from "@/components/theme-preference";
+import { loadingCopy } from "@/modules/i18n/messages";
 import { isPhoneNumber, sanitizePhoneInput } from "@/modules/saas/domain/settings";
 
 type SettingsData = {
@@ -44,6 +46,7 @@ export function SettingsClient({ initial, initialBilling, locale }: { initial: S
   const savedTheme = useRef<ThemePreference>(initial.user.preferredTheme);
   const [data, setData] = useState(initial);
   const [pending, setPending] = useState(false);
+  const [languagePending, setLanguagePending] = useState<"EN" | "FIL" | null>(null);
   const [toast, setToast] = useState("");
   const [error, setError] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -56,15 +59,27 @@ export function SettingsClient({ initial, initialBilling, locale }: { initial: S
   const field = (key: keyof SettingsData["store"], value: string) => setData(current => ({ ...current, store: { ...current.store, [key]: value } }));
   function selectTheme(theme: ThemePreference) { applyThemePreference(theme); setData(current => ({ ...current, user: { ...current.user, preferredTheme: theme } })); }
 
+  async function selectLanguage(language: "EN" | "FIL") {
+    if (language === locale || languagePending) return;
+    setLanguagePending(language);
+    setError("");
+    try {
+      await persistLanguagePreference(language);
+      document.documentElement.lang = language === "FIL" ? "fil" : "en";
+      window.location.reload();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t.genericError);
+      setLanguagePending(null);
+    }
+  }
+
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setPending(true); setError("");
     if (!isPhoneNumber(data.user.phone ?? "") || !isPhoneNumber(data.store.contact ?? "")) { setError(t.phoneError); setPending(false); return; }
     try {
       const response = await fetch("/api/settings", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: data.user.name, phone: data.user.phone, storeName: data.store.name, storeType: data.store.storeType, address: data.store.address, contact: data.store.contact, language: data.user.preferredLanguage, theme: data.user.preferredTheme, ...data.preference }) });
       await responseMessage(response, t.genericError);
-      document.cookie = `tindahan-language=${data.user.preferredLanguage};path=/;max-age=31536000;samesite=lax`;
       document.cookie = `tindahan-theme=${data.user.preferredTheme};path=/;max-age=31536000;samesite=lax`;
-      document.documentElement.lang = data.user.preferredLanguage === "FIL" ? "fil" : "en";
       savedTheme.current = data.user.preferredTheme; applyThemePreference(data.user.preferredTheme); setToast(t.saved); router.refresh();
     } catch (cause) { applyThemePreference(savedTheme.current); setError(cause instanceof Error ? cause.message : t.genericError); }
     finally { setPending(false); }
@@ -112,7 +127,7 @@ export function SettingsClient({ initial, initialBilling, locale }: { initial: S
 
       <SettingsGroup title={t.account}><div className="settings-fields"><div className="form-row"><Field label={t.yourName}><input className="input" value={data.user.name ?? ""} maxLength={100} onChange={event => setData(current => ({ ...current, user: { ...current.user, name: event.target.value } }))} required/></Field><Field label={t.mobile}><input className="input" type="tel" inputMode="tel" value={data.user.phone ?? ""} maxLength={24} pattern="[0-9+() -]{7,24}" onChange={event => setData(current => ({ ...current, user: { ...current.user, phone: sanitizePhoneInput(event.target.value) } }))}/></Field></div><Field label={t.email}><input className="input" value={data.user.email} disabled/></Field><div className="settings-password-row"><span><strong>{t.password}</strong></span><button className="btn btn-secondary" type="button" aria-expanded={passwordOpen} onClick={() => { setPasswordError(""); setPasswordOpen(value => !value); }}>{passwordOpen ? t.cancelPassword : t.changePassword}</button></div>{passwordOpen && <div className="settings-password-editor" onKeyDown={passwordKeyDown}><div className="field"><label className="field-label" htmlFor="current-password">{t.currentPassword}</label><PasswordInput id="current-password" autoFocus autoComplete="current-password" value={passwords.currentPassword} onChange={event => setPasswords(current => ({ ...current, currentPassword: event.target.value }))} required locale={locale}/></div><div className="form-row"><div className="field"><label className="field-label" htmlFor="new-password">{t.newPassword}</label><PasswordInput id="new-password" autoComplete="new-password" minLength={10} value={passwords.newPassword} onChange={event => setPasswords(current => ({ ...current, newPassword: event.target.value }))} required locale={locale}/></div><div className="field"><label className="field-label" htmlFor="confirm-password">{t.confirmPassword}</label><PasswordInput id="confirm-password" autoComplete="new-password" minLength={10} value={passwords.confirmPassword} onChange={event => setPasswords(current => ({ ...current, confirmPassword: event.target.value }))} required locale={locale}/></div></div>{passwordError && <p className="field-error" role="alert">{passwordError}</p>}<button className="btn btn-secondary settings-inline-action" type="button" disabled={pending} aria-busy={pending} onClick={() => void changePassword()}>{pending ? <LoadingButtonContent message={t.updatePassword}/> : t.updatePassword}</button></div>}</div></SettingsGroup>
 
-      <SettingsGroup title={t.preferences}><div className="settings-row"><span className="row-main"><span className="row-title">{t.language}</span><span className="row-meta">{t.languageHelp}</span></span><div className="segmented" role="group" aria-label={t.language}><button type="button" className={data.user.preferredLanguage === "EN" ? "active" : ""} aria-pressed={data.user.preferredLanguage === "EN"} onClick={() => setData(current => ({ ...current, user: { ...current.user, preferredLanguage: "EN" } }))}>EN</button><button type="button" className={data.user.preferredLanguage === "FIL" ? "active" : ""} aria-pressed={data.user.preferredLanguage === "FIL"} onClick={() => setData(current => ({ ...current, user: { ...current.user, preferredLanguage: "FIL" } }))}>FIL</button></div></div><div className="settings-row"><span className="row-main"><span className="row-title">{t.theme}</span><span className="row-meta">{t.themeHelp}</span></span><select className="select settings-select" aria-label={t.theme} value={data.user.preferredTheme} onChange={event => selectTheme(event.target.value as ThemePreference)}><option value="SYSTEM">{t.system}</option><option value="LIGHT">{t.light}</option><option value="DARK">{t.dark}</option></select></div></SettingsGroup>
+      <SettingsGroup title={t.preferences}><div className="settings-row"><span className="row-main"><span className="row-title">{t.language}</span><span className="row-meta">{t.languageHelp}</span></span><div className="segmented" role="group" aria-label={t.language} aria-busy={Boolean(languagePending)}><button type="button" className={locale === "EN" ? "active" : ""} aria-pressed={locale === "EN"} disabled={Boolean(languagePending)} onClick={() => void selectLanguage("EN")}>{languagePending === "EN" ? <><LoadingIcon size="compact"/><span className="sr-only">{loadingCopy(locale, "changingLanguage")}</span></> : "EN"}</button><button type="button" className={locale === "FIL" ? "active" : ""} aria-pressed={locale === "FIL"} disabled={Boolean(languagePending)} onClick={() => void selectLanguage("FIL")}>{languagePending === "FIL" ? <><LoadingIcon size="compact"/><span className="sr-only">{loadingCopy(locale, "changingLanguage")}</span></> : "FIL"}</button></div></div><div className="settings-row"><span className="row-main"><span className="row-title">{t.theme}</span><span className="row-meta">{t.themeHelp}</span></span><select className="select settings-select" aria-label={t.theme} value={data.user.preferredTheme} onChange={event => selectTheme(event.target.value as ThemePreference)}><option value="SYSTEM">{t.system}</option><option value="LIGHT">{t.light}</option><option value="DARK">{t.dark}</option></select></div></SettingsGroup>
       {owner && <SettingsGroup title={t.notifications}><Toggle label={t.low} help={t.lowHelp} checked={data.preference.lowStockEnabled} onChange={value => setData(current => ({ ...current, preference: { ...current.preference, lowStockEnabled: value } }))}/><Toggle label={t.daily} help={t.dailyHelp} checked={data.preference.dailySummaryEnabled} onChange={value => setData(current => ({ ...current, preference: { ...current.preference, dailySummaryEnabled: value } }))}/><Toggle label={t.receipt} help={t.receiptHelp} checked={data.preference.receiptNotifications} onChange={value => setData(current => ({ ...current, preference: { ...current.preference, receiptNotifications: value } }))}/></SettingsGroup>}
       {owner && <SettingsGroup title={t.retention}><div className="settings-row"><span className="row-main"><span className="row-title">{t.retention}</span><span className="row-meta">{t.retentionHelp}</span></span><select className="select settings-select" aria-label={t.retention} value={data.preference.receiptRetentionDays} onChange={event => setData(current => ({ ...current, preference: { ...current.preference, receiptRetentionDays: Number(event.target.value) } }))}><option value="90">{t.threeMonths}</option><option value="180">{t.sixMonths}</option><option value="365">{t.oneYear}</option></select></div></SettingsGroup>}
       <button className="btn btn-primary settings-save" disabled={pending} type="submit">{pending ? <LoadingButtonContent message={t.save}/> : t.save}</button>
