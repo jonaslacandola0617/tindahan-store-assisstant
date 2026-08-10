@@ -1,60 +1,68 @@
-# Tindahan
+# TINDAHAN
 
-Tindahan is a Store Operating Assistant for independent Philippine retailers. This repository contains two intentionally distinct artifacts:
+TINDAHAN is a full-stack store operating assistant built for small neighborhood stores and mini-marts in the Philippines. It brings inventory, sales, barcode scanning, receipt intelligence, reports, staff access, and subscription controls into one focused application without trying to become a full ERP or traditional POS.
 
-- The approved static prototype in `design/static-prototype/`. It remains the visual and interaction contract and must be consulted for every production UI implementation.
-- The production Next.js application under `src/`, backed by PostgreSQL and Prisma.
+**Live app:** https://tindahan.vercel.app
 
-## Production application
+## Highlights
+
+- Product and inventory management with traceable stock movements
+- Sales recording with barcode scanning and stock validation
+- Supplier receipt scanning with AWS S3, AWS Lambda, and Azure AI Document Intelligence
+- Human-reviewed receipt matching before inventory is updated
+- Reports, search, low-stock alerts, and CSV exports
+- Owner and staff accounts with store-level data isolation
+- English and Filipino interface support
+- Xendit subscription billing integration and Resend transactional email support
+- Private receipt storage, retention controls, and background processing
+
+## Tech stack
+
+Next.js, React, TypeScript, PostgreSQL, Prisma, NextAuth, AWS S3, AWS Lambda, Azure AI Document Intelligence, Xendit, Resend, ZXing, Vitest, Playwright, pnpm, and GitHub Actions.
+
+## Architecture
+
+The application is organized as a modular monolith. Features such as Inventory, Sales, Receipts, Reports, Identity, and Billing keep presentation, application rules, and infrastructure concerns separate. Store context is resolved on the server, important inventory and billing transitions are transactional/idempotent, and OCR suggestions never update stock without user approval.
+
+The approved static prototype in `design/static-prototype/` remains the visual and interaction reference for the production UI.
+
+## Local development
 
 Requirements: Node.js 22 or 24, pnpm 11, and PostgreSQL.
 
-1. Copy `.env.example` to `.env` and replace every required value. Prisma reads `.env`; Next.js also loads it.
-2. Install dependencies with `pnpm install`.
-3. Generate the Prisma client with `pnpm db:generate`.
-4. Apply migrations with `pnpm db:migrate`.
-5. Seed a reproducible local owner with `pnpm db:seed`.
-6. Start the application with `pnpm dev`.
+```bash
+pnpm install
+cp .env.example .env
+pnpm db:generate
+pnpm db:migrate
+pnpm db:seed
+pnpm dev
+```
 
-The seed account is `owner@example.test` with password `change-this-demo-password`. Change or remove it outside local development.
+Use isolated development/test databases only. See `.env.example` for the required environment variables and provider configuration.
 
-### Database connections
+## Quality checks
 
-- `DATABASE_URL` is the pooled connection used by the running application.
-- `DIRECT_URL` is the unpooled connection used by `pnpm db:migrate` and `pnpm db:migrate:dev`.
-- `TEST_DATABASE_URL` is the isolated runtime connection used by database-backed tests. `TEST_DIRECT_DATABASE_URL` is optional for migrations; when omitted for a Neon pooled URL, the migration helper safely resolves the matching direct host while preserving the test branch and database.
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
 
-The legacy name `TEST_DATABASE` is accepted for the current local setup, but `TEST_DATABASE_URL` is preferred for new environments.
+Additional operational commands include `pnpm release:verify`, receipt-retention cleanup, maintenance pruning, and receipt-worker tooling.
 
-Never point `TEST_DATABASE_URL` at a development or production database. Database-backed tests use the isolated schema named in that URL. Prepare it with `pnpm db:migrate:test`; unit tests do not require a database.
+## Documentation
 
-The seed also creates a small barcode-ready catalog for the Sales workflow without overwriting existing products. Open `/sales/new` to search, scan, or record a sale. Camera recognition depends on browser `BarcodeDetector` support; manual entry and compatible keyboard-style scanners remain available everywhere.
+- `docs/ARCHITECTURE.md` — application structure and boundaries
+- `docs/PRD_TRACEABILITY.md` — product requirements mapped to implementation
+- `docs/receipts/README.md` — receipt processing and recovery flows
+- `docs/billing/README.md` — subscription and billing behavior
+- `docs/operations/DEPLOYMENT_CHECKLIST.md` — deployment checks
+- `docs/operations/PRODUCTION_RUNBOOK.md` — operational procedures
+- `docs/adr/` — architectural decisions
+- `design/` — design system, interaction specifications, and approved prototype
 
-To populate an existing Owner store with an idempotent report-demo catalog and confirmed sales, run `pnpm db:seed:reports -- --email owner@example.com`. Add `--dry-run` to verify the account, store, role, and planned fixture counts without writing data.
+## Status
 
-Receipt capture is available at `/receipts/new`. Explicit local development may use private local storage and deterministic extraction; production uses the configured private AWS S3 bucket and Azure AI Document Intelligence settings listed in `.env.example`. Run `pnpm receipts:worker` for the persistent database-backed processor or `pnpm receipts:worker:once` to drain one batch. Fixture names, cloud setup, and recovery cases are documented in `docs/receipts/README.md`.
-
-Phase 7 settings are available at `/settings`. Owners can update store details, notification defaults, receipt-photo retention, view their plan state, and create revocable Staff invitation links. Staff can update only their own account, language, theme, and password; store, retention, team, and plan controls remain owner-only. Invitation tokens are shown once for sharing and stored only as hashes. The pilot billing target is intentionally manual and provider-neutral—there is no fake checkout. An authorized operator can change a pilot store state with `pnpm pilot:store -- --email=owner@example.com --status=ACTIVE`; every transition is audited. Supported states are `TRIALING`, `ACTIVE`, `GRACE`, `RESTRICTED`, and `CANCELED`.
-
-Existing stores are migrated to active pilot access. New stores begin a trial using `TRIAL_DAYS`; `BILLING_GRACE_DAYS` controls the writable grace period. Restricted and canceled stores remain readable and exportable, while inventory, sales, and receipt mutations are rejected centrally. `STAFF_INVITE_TTL_DAYS` bounds invitation lifetime. These variables are server-only and must never use a `NEXT_PUBLIC_` prefix.
-
-For UI-only development without PostgreSQL, set `AUTH_DEMO_MODE=true` and provide the demo credentials documented in `.env.example`. Demo mode is rejected when `NODE_ENV=production`.
-
-## Quality commands
-
-- `pnpm lint`
-- `pnpm typecheck`
-- `pnpm test`
-- `pnpm build`
-
-## Release and operations
-
-- `pnpm release:verify` performs read-only tenant and ledger integrity checks against the configured database.
-- `pnpm receipts:retention` previews expired private receipt photos; add `-- --execute` only after reviewing the dry-run counts.
-- `pnpm maintenance:prune` removes expired rate-limit and completed idempotency cache records.
-- `/api/health` is the liveness endpoint. `/api/ready` also verifies database readiness.
-- Production must use `RATE_LIMIT_PROVIDER=database`; memory throttling is test-only.
-
-Use `docs/operations/DEPLOYMENT_CHECKLIST.md` for deployment and `docs/operations/PRODUCTION_RUNBOOK.md` for monitoring, incidents, backup/restore drills, retention, and rollback.
-
-Architecture, phased delivery, traceability, and decisions are documented in `docs/`.
+TINDAHAN is currently maintained as a release-candidate/test-mode SaaS project. Core application workflows are implemented; payment and provider-level production activation remain environment/account decisions rather than missing application features.
