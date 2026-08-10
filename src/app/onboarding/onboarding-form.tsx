@@ -17,6 +17,8 @@ const copy = {
     lowStock: "Notify me about low stock", lowStockHelp: "Get a reminder before you run out",
     dailySummary: "Daily summary", dailySummaryHelp: "A short recap every evening",
     currency: "Amounts are shown in Philippine Peso (₱).", title3: "You're all set", intro3: "Here's what to do first.",
+    verificationSent: "We sent a verification link to your email. You can start using Tindahan now and verify your email when convenient.",
+    verificationFailed: "Your account is ready, but the verification email could not be sent right now. This won't block your pilot access.",
     scan: "Scan your first receipt", inventory: "Look through your inventory", sale: "Record your first sale",
     back: "Back", continue: "Continue", finish: "Go to my dashboard",
     storeNameError: "Enter a store name with at least 2 characters.", ownerNameError: "Enter your name with at least 2 characters.",
@@ -30,6 +32,8 @@ const copy = {
     lowStock: "Ipaalam sa akin kung paubos na ang paninda", lowStockHelp: "Bigyan ng paalala bago maubos",
     dailySummary: "Pang-araw-araw na buod", dailySummaryHelp: "Maikling buod tuwing gabi",
     currency: "Ipinapakita ang halaga sa Philippine Peso (₱).", title3: "Handa ka na", intro3: "Ito ang unang dapat gawin.",
+    verificationSent: "Nagpadala kami ng verification link sa iyong email. Maaari mo nang gamitin ang Tindahan at i-verify ang email kapag may oras.",
+    verificationFailed: "Handa na ang account mo, pero hindi naipadala ang verification email ngayon. Hindi nito haharangin ang iyong pilot access.",
     scan: "I-scan ang una mong resibo", inventory: "Tingnan ang iyong imbentaryo", sale: "Itala ang unang benta",
     back: "Bumalik", continue: "Magpatuloy", finish: "Pumunta sa dashboard",
     storeNameError: "Maglagay ng pangalan ng tindahan na may hindi bababa sa 2 character.", ownerNameError: "Ilagay ang iyong pangalan na may hindi bababa sa 2 character.",
@@ -39,6 +43,7 @@ const copy = {
 } as const;
 
 type SetupCredentials = { email: string; password: string };
+type VerificationStatus = "SENT" | "FAILED" | "ALREADY_VERIFIED" | null;
 
 export function OnboardingForm({ locale, isAuthenticated }: { locale: Locale; isAuthenticated: boolean }) {
   const text = copy[locale];
@@ -47,19 +52,12 @@ export function OnboardingForm({ locale, isAuthenticated }: { locale: Locale; is
   const [fieldErrors, setFieldErrors] = useState<{ storeName?: string; ownerName?: string }>({});
   const [recovery, setRecovery] = useState<{ href: string; label: string } | null>(null);
   const [accountCreated, setAccountCreated] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>(null);
   const [pending, setPending] = useState(false);
 
-  function root() {
-    return document.getElementById("store-setup-form")!;
-  }
-
-  function value(name: string) {
-    return (root().querySelector(`[name="${name}"]`) as HTMLInputElement | HTMLSelectElement | null)?.value ?? "";
-  }
-
-  function checked(name: string) {
-    return (root().querySelector(`[name="${name}"]`) as HTMLInputElement | null)?.checked ?? false;
-  }
+  function root() { return document.getElementById("store-setup-form")!; }
+  function value(name: string) { return (root().querySelector(`[name="${name}"]`) as HTMLInputElement | HTMLSelectElement | null)?.value ?? ""; }
+  function checked(name: string) { return (root().querySelector(`[name="${name}"]`) as HTMLInputElement | null)?.checked ?? false; }
 
   function validateStoreDetails() {
     const nextErrors = {
@@ -68,8 +66,7 @@ export function OnboardingForm({ locale, isAuthenticated }: { locale: Locale; is
     };
     setFieldErrors(nextErrors);
     if (nextErrors.storeName || nextErrors.ownerName) {
-      setError("");
-      setStep(1);
+      setError(""); setStep(1);
       setTimeout(() => document.getElementById(nextErrors.storeName ? "storeName" : "ownerName")?.focus());
       return false;
     }
@@ -77,31 +74,20 @@ export function OnboardingForm({ locale, isAuthenticated }: { locale: Locale; is
   }
 
   function goToPreferences() {
-    setError("");
-    setRecovery(null);
+    setError(""); setRecovery(null);
     if (validateStoreDetails()) setStep(2);
   }
 
   async function completeSetup() {
     if (!validateStoreDetails()) return;
-    setPending(true);
-    setError("");
-    setRecovery(null);
+    setPending(true); setError(""); setRecovery(null);
 
     const store = {
-      name: value("storeName"),
-      language: locale,
-      lowStockEnabled: checked("lowStock"),
-      dailySummaryEnabled: checked("dailySummary"),
-      storeType: value("storeType"),
+      name: value("storeName"), language: locale, lowStockEnabled: checked("lowStock"),
+      dailySummaryEnabled: checked("dailySummary"), storeType: value("storeType"),
     };
-
     const parsedStore = storeInput.safeParse(store);
-    if (!parsedStore.success) {
-      setError(text.setupError);
-      setPending(false);
-      return;
-    }
+    if (!parsedStore.success) { setError(text.setupError); setPending(false); return; }
 
     try {
       if (!isAuthenticated) {
@@ -109,9 +95,8 @@ export function OnboardingForm({ locale, isAuthenticated }: { locale: Locale; is
         try {
           const stored = sessionStorage.getItem("tindahan-setup-credentials");
           credentials = stored ? JSON.parse(stored) as SetupCredentials : null;
-        } catch {
-          credentials = null;
-        }
+        } catch { credentials = null; }
+
         const account = registrationInput.safeParse({ name: value("ownerName"), ...credentials });
         if (!account.success) {
           setError(text.credentialsError);
@@ -121,16 +106,16 @@ export function OnboardingForm({ locale, isAuthenticated }: { locale: Locale; is
 
         if (!accountCreated) {
           const registration = await fetch("/api/onboarding/register", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
+            method: "POST", headers: { "content-type": "application/json" },
             body: JSON.stringify({ account: account.data, store: parsedStore.data }),
           });
+          const result = await registration.json() as { error?: string; verificationEmailStatus?: VerificationStatus };
           if (!registration.ok) {
-            const result = await registration.json() as { error?: string };
             setError(result.error ?? text.setupError);
             setRecovery(registration.status === 409 ? { href: "/sign-in", label: text.signInAction } : null);
             return;
           }
+          setVerificationStatus(result.verificationEmailStatus ?? "FAILED");
           setAccountCreated(true);
         }
 
@@ -142,9 +127,7 @@ export function OnboardingForm({ locale, isAuthenticated }: { locale: Locale; is
         }
       } else {
         const response = await fetch("/api/onboarding", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify(parsedStore.data),
+          method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(parsedStore.data),
         });
         if (!response.ok) {
           const result = await response.json() as { error?: string };
@@ -155,17 +138,13 @@ export function OnboardingForm({ locale, isAuthenticated }: { locale: Locale; is
 
       sessionStorage.removeItem("tindahan-setup-credentials");
       setStep(3);
-    } catch {
-      setError(text.setupError);
-    } finally {
-      setPending(false);
-    }
+    } catch { setError(text.setupError); }
+    finally { setPending(false); }
   }
 
   return <div id="store-setup-form">
     <div className="step-indicator" style={{ marginBottom: "var(--space-6)" }} aria-hidden="true">
-      {[1, 2, 3].map((dot) => <span key={dot} className={`step-dot${dot === step ? " active" : ""}${dot < step ? " done" : ""}`}/>)
-      }
+      {[1, 2, 3].map(dot => <span key={dot} className={`step-dot${dot === step ? " active" : ""}${dot < step ? " done" : ""}`}/>)}
     </div>
 
     {error && <div className="form-alert" role="alert" style={{ marginBottom: "var(--space-4)" }}><span>{error}</span>{recovery && <span style={{ display: "block", marginTop: "var(--space-2)" }}><Link href={recovery.href} style={{ color: "inherit", fontWeight: "var(--weight-semibold)", textDecoration: "underline" }}>{recovery.label}</Link></span>}</div>}
@@ -193,7 +172,8 @@ export function OnboardingForm({ locale, isAuthenticated }: { locale: Locale; is
     <section hidden={step !== 3} style={{ textAlign: "center" }}>
       <div className="empty-icon" style={{ margin: "0 auto var(--space-4)" }}><Icon name="check" className="icon icon-lg"/></div>
       <h1 style={{ marginBottom: "var(--space-2)" }}>{text.title3}</h1>
-      <p className="text-muted" style={{ marginBottom: "var(--space-6)" }}>{text.intro3}</p>
+      <p className="text-muted" style={{ marginBottom: "var(--space-5)" }}>{text.intro3}</p>
+      {verificationStatus && verificationStatus !== "ALREADY_VERIFIED" && <div className="banner banner-info" style={{ textAlign: "left", marginBottom: "var(--space-5)" }}><Icon name={verificationStatus === "SENT" ? "check" : "info"}/><span>{verificationStatus === "SENT" ? text.verificationSent : text.verificationFailed}</span></div>}
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", textAlign: "left", marginBottom: "var(--space-6)" }}>
         <FirstTask icon="camera" label={text.scan}/><FirstTask icon="package" label={text.inventory}/><FirstTask icon="bag" label={text.sale}/>
       </div>

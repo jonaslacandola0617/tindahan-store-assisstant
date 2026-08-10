@@ -1,0 +1,63 @@
+.card {
+  padding: var(--space-5);
+  border-color: color-mix(in srgb, var(--color-accent) 28%, var(--color-border));
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+.copy {
+  min-width: 0;
+}
+
+.title {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--color-text-primary);
+  font-weight: var(--weight-semibold);
+}
+
+.help {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+.editor {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.dangerButton {
+  border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+}
+
+@media (max-width: 640px) {
+  .row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .row > button,
+  .actions button {
+    width: 100%;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+}

@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
+import { accountAccessState } from "@/modules/identity/application/account-access";
 import { authOptions } from "@/modules/identity/infrastructure/auth-options";
 import { resolveStoreContext } from "@/modules/stores/application/store-context";
 import { serverEnvironment } from "@/platform/environment/server";
@@ -21,7 +22,10 @@ export default async function ProtectedLayout({
   const context = serverEnvironment.demoMode
     ? { store: { name: "Aling Rosa's Store" }, role: "OWNER" as const }
     : await resolveStoreContext(session.user.id);
-  if (!context) redirect("/onboarding");
+  if (!context) {
+    if (await accountAccessState(session.user.id) === "DISABLED") redirect("/account-inactive");
+    redirect("/onboarding");
+  }
   const locale =
     (await cookies()).get("tindahan-language")?.value === "FIL" ? "FIL" : "EN";
   const [inventoryAttention, receiptAttention, notificationAttention, presentationPreference] = serverEnvironment.demoMode
