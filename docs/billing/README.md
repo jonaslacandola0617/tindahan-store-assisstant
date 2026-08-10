@@ -2,9 +2,25 @@
 
 ## Xendit contract
 
-Production uses Xendit's current recurring-plan API through a server-only adapter. The application creates a customer, creates a monthly PHP recurring plan, redirects the owner to the hosted authorization URL, and waits for authenticated webhooks. It never accepts a browser return as payment proof.
+Production uses Xendit's current recurring-plan API through a server-only adapter. The application creates a customer, creates a monthly PHP recurring plan, redirects the owner to the provider-hosted payment/linking URL when one is returned, and waits for authenticated webhooks. It never accepts a browser return as payment proof.
 
-Configure `BILLING_PROVIDER=xendit`, `APP_URL`, `BILLING_STANDARD_MONTHLY_AMOUNT_PHP`, `XENDIT_SECRET_KEY`, and `XENDIT_WEBHOOK_TOKEN`. Register `POST <APP_URL>/api/billing/webhooks/xendit` in the Xendit Dashboard. Subscribe to plan activation/inactivation and cycle created/retrying/succeeded/failed events. The application currently acts on activation, inactivation, retrying, succeeded, and failed; unrecognized events are safely recorded as ignored.
+Configure `BILLING_PROVIDER=xendit`, `APP_URL`, `BILLING_STANDARD_MONTHLY_AMOUNT_PHP`, `XENDIT_SECRET_KEY`, and `XENDIT_WEBHOOK_TOKEN`. `BILLING_STANDARD_MONTHLY_AMOUNT_PHP` is expressed in whole Philippine pesos: for example, `499` means PHP 499.00 per month, not 499 centavos.
+
+The canonical Xendit webhook endpoint is:
+
+```text
+POST <APP_URL>/api/billing/webhooks/xendit
+```
+
+For the current Vercel deployment this resolves to:
+
+```text
+https://tindahan-store-assisstant.vercel.app/api/billing/webhooks/xendit
+```
+
+Do not configure `/api/webooks/xendit` (misspelled) or `/api/webhooks/xendit`; neither is the application billing route.
+
+Register the canonical endpoint for the Xendit Recurring webhook. Payment Session, Payment Request V3, and Payment Token V3 callbacks may also point to the same authenticated endpoint while testing; events the billing domain does not use are persisted/ignored safely. The application currently acts on `recurring.plan.activated`, `recurring.plan.inactivated`, `recurring.cycle.retrying`, `recurring.cycle.succeeded`, and `recurring.cycle.failed`.
 
 Use Xendit test credentials until launch approval. Verify that the chosen Philippine payment channel supports merchant-initiated recurring transactions in the merchant Dashboard; API currency support alone does not guarantee a channel is enabled. Never put Xendit credentials in `NEXT_PUBLIC_` variables or logs.
 
@@ -23,7 +39,9 @@ Xendit retries non-2xx deliveries, so alerts should cover webhooks left `RECEIVE
 
 ## Pricing and tax readiness
 
-The repository intentionally contains no commercial price. `BILLING_STANDARD_MONTHLY_AMOUNT_PHP` supplies the approved tax-exclusive monthly amount. If tax treatment has been legally approved, set `BILLING_TAX_ENABLED=true`, a basis-point rate such as `1200`, and an owner-facing label. Otherwise keep tax disabled.
+The repository intentionally contains no locked commercial price. `BILLING_STANDARD_MONTHLY_AMOUNT_PHP` supplies the approved tax-exclusive monthly amount. For test-mode verification, `499` is a useful fixture because the automated billing tests already exercise PHP 499 cycle events; it is not a final pricing decision.
+
+If tax treatment has been legally approved, set `BILLING_TAX_ENABLED=true`, a basis-point rate such as `1200`, and an owner-facing label. Otherwise keep tax disabled.
 
 Statements are subscription payment records suitable for viewing, printing, or saving. They explicitly do not claim to be official tax invoices. Before making a tax-invoice claim, obtain legal/accounting approval and add the required registered seller identity and numbering controls.
 
