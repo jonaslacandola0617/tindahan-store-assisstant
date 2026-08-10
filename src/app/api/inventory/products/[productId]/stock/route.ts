@@ -12,7 +12,9 @@ export async function POST(request: Request, { params }: Context) {
     const productId = (await params).productId;
     if (body.action === "adjust") {
       const result = await adjustInventory(userId, productId, body);
-      after(() => sendStockAlertForMovement(userId, result.movementId));
+      after(async () => {
+        await sendStockAlertForMovement(userId, result.movementId);
+      });
       return NextResponse.json(result, { status: 201 });
     }
     const result = await addInventory(userId, productId, body);
