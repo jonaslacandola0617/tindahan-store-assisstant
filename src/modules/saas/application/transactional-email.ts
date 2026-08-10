@@ -1,18 +1,66 @@
 import { database } from "@/platform/persistence/prisma";
+import { serverEnvironment } from "@/platform/environment/server";
 import { emailProvider, type TransactionalEmail } from "../infrastructure/email-provider";
 
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]!);
-function frame(title: string, message: string, action?: { label: string; url: string }): TransactionalEmail {
+
+type EmailFrameOptions = {
+  title: string;
+  message: string;
+  action?: { label: string; url: string };
+  note?: string;
+  eyebrow?: string;
+};
+
+function frame({ title, message, action, note, eyebrow = "Store operating assistant" }: EmailFrameOptions): TransactionalEmail {
+  const appUrl = serverEnvironment.APP_URL?.replace(/\/$/, "");
+  const logoHtml = appUrl
+    ? `<img src="${escapeHtml(`${appUrl}/tindahan-email-logo.svg`)}" width="44" height="44" alt="" style="display:block;width:44px;height:44px;border:0;border-radius:12px" />`
+    : `<span style="display:block;width:44px;height:44px;line-height:44px;text-align:center;border-radius:12px;background:#1B4D3E;color:#FFFFFF;font-size:20px;font-weight:700">T</span>`;
   const actionText = action ? `\n\n${action.label}: ${action.url}` : "";
-  const actionHtml = action ? `<p style="margin:24px 0"><a href="${escapeHtml(action.url)}" style="background:#195847;color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;display:inline-block">${escapeHtml(action.label)}</a></p>` : "";
-  return { to: "", subject: title, text: `${message}${actionText}\n\nTindahan`, html: `<div style="font-family:Arial,sans-serif;background:#faf8f4;padding:32px;color:#151915"><div style="max-width:560px;margin:auto;background:#fff;border:1px solid #e5dfd5;border-radius:18px;padding:32px"><h1 style="font-size:24px;margin:0 0 16px">${escapeHtml(title)}</h1><p style="line-height:1.6">${escapeHtml(message)}</p>${actionHtml}<p style="color:#68706a;font-size:13px;margin-top:28px">Tindahan sent this account notification.</p></div></div>` };
+  const noteText = note ? `\n\n${note}` : "";
+  const actionHtml = action
+    ? `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:26px 0 24px"><tr><td bgcolor="#1B4D3E" style="border-radius:12px"><a href="${escapeHtml(action.url)}" style="display:inline-block;padding:14px 22px;color:#FFFFFF;text-decoration:none;font-size:15px;font-weight:700;line-height:20px">${escapeHtml(action.label)}</a></td></tr></table>`
+    : "";
+  const noteHtml = note
+    ? `<div style="margin-top:26px;padding:16px 18px;border-radius:12px;background:#E8F2EE;color:#315D50;font-size:13px;line-height:20px">${escapeHtml(note)}</div>`
+    : "";
+
+  return {
+    to: "",
+    subject: title,
+    text: `${message}${actionText}${noteText}\n\nTindahan — Run the store. Tindahan keeps up.`,
+    html: `<!doctype html><html><body style="margin:0;padding:0;background:#FAF8F5;color:#1A1D1A"><div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(message)}</div><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#FAF8F5"><tr><td align="center" style="padding:36px 16px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px"><tr><td style="padding:0 6px 18px"><table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr><td style="vertical-align:middle">${logoHtml}</td><td style="padding-left:12px;vertical-align:middle"><div style="font-family:'Plus Jakarta Sans','DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#1A1D1A;font-size:20px;font-weight:800;letter-spacing:-0.3px">Tindahan</div><div style="margin-top:2px;font-family:'Plus Jakarta Sans','DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#6B7B52;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase">${escapeHtml(eyebrow)}</div></td></tr></table></td></tr><tr><td style="overflow:hidden;border:1px solid #E6E2DC;border-radius:20px;background:#FFFFFF;box-shadow:0 4px 12px rgba(27,77,62,0.04)"><div style="height:5px;background:#1B4D3E"></div><div style="padding:34px 34px 32px;font-family:'Plus Jakarta Sans','DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif"><h1 style="margin:0 0 14px;color:#1A1D1A;font-size:26px;line-height:34px;font-weight:800;letter-spacing:-0.5px">${escapeHtml(title)}</h1><p style="margin:0;color:#5F665E;font-size:15px;line-height:25px">${escapeHtml(message)}</p>${actionHtml}${noteHtml}<div style="margin-top:30px;padding-top:20px;border-top:1px solid #E6E2DC;color:#7A8179;font-size:12px;line-height:19px">Run the store. Tindahan keeps up.<br/>This is an account message from Tindahan.</div></div></td></tr></table></td></tr></table></div></body></html>`,
+  };
 }
 
-export function staffInvitationEmail(storeName: string, inviterName: string, inviteUrl: string) { return frame(`Join ${storeName} on Tindahan`, `${inviterName} invited you to join ${storeName} as staff. Your account stays separate from the owner’s account.`, { label: "Accept invitation", url: inviteUrl }); }
-export function invitationAcceptedEmail(storeName: string, staffName: string) { return frame("Staff invitation accepted", `${staffName} has joined ${storeName} as staff.`); }
+export function staffInvitationEmail(storeName: string, inviterName: string, inviteUrl: string) {
+  return frame({
+    eyebrow: "Staff invitation",
+    title: `Join ${storeName}`,
+    message: `${inviterName} invited you to join ${storeName} as staff on Tindahan. You’ll use your own account, so the owner never needs to share a password.`,
+    action: { label: "Accept invitation", url: inviteUrl },
+    note: "This invitation is private. If you were not expecting it, you can safely ignore this email.",
+  });
+}
+
+export function accountVerificationEmail(name: string, verificationUrl: string) {
+  return frame({
+    eyebrow: "Account verification",
+    title: "Verify your email",
+    message: `Hi ${name}, confirm this email address for your Tindahan account. It only takes one tap and helps keep your store account connected to the right person.`,
+    action: { label: "Verify email", url: verificationUrl },
+    note: "If you did not create a Tindahan account, you can safely ignore this email.",
+  });
+}
+
+export function invitationAcceptedEmail(storeName: string, staffName: string) {
+  return frame({ title: "Staff invitation accepted", message: `${staffName} has joined ${storeName} as staff.` });
+}
+
 export function billingStatusEmail(storeName: string, kind: "activated" | "failed" | "canceled" | "changed") {
   const content: [string, string] = kind === "activated" ? ["Plan activated", `Your Standard plan for ${storeName} is active.`] : kind === "failed" ? ["Payment needs attention", `We could not complete the latest plan payment for ${storeName}. Review your billing details in Settings.`] : kind === "canceled" ? ["Plan canceled", `The plan for ${storeName} has been canceled. Your records remain available.`] : ["Plan updated", `The plan for ${storeName} has been updated.`];
-  return frame(content[0], content[1]);
+  return frame({ title: content[0], message: content[1] });
 }
 
 export async function deliverEmail(input: { storeId: string; userId?: string; invitationId?: string; kind: string; recipient: string; idempotencyKey: string; email: TransactionalEmail }) {
