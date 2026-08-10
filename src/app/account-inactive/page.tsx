@@ -39,7 +39,7 @@ export default async function AccountInactivePage() {
     <main className="standalone" id="main">
       <section className="card card-pad" style={{ width: "min(520px, calc(100vw - var(--space-8)))", boxShadow: "var(--shadow-overlay)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-4)", marginBottom: "var(--space-7)" }}><Brand linked={false}/><LanguageToggle locale={locale}/></div>
-        <div className="empty-icon" style={{ marginBottom: "var(--space-4)" }}><Icon name="lock"/></div>
+        <div className="empty-icon" style={{ marginBottom: "var(--space-4)" }}><Icon name="info"/></div>
         <h1 style={{ marginBottom: "var(--space-2)" }}>{t.title}</h1>
         <p className="text-muted" style={{ lineHeight: "var(--leading-relaxed)", marginBottom: "var(--space-3)" }}>{t.message}</p>
         <p className="text-sm text-muted" style={{ lineHeight: "var(--leading-relaxed)", marginBottom: "var(--space-6)" }}>{t.help}</p>
