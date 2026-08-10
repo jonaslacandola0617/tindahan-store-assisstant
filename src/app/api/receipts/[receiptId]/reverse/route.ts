@@ -13,7 +13,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ rec
         userId,
         sourceType: "RECEIPT_REVERSAL",
         sourceId: receiptId,
-        eventKey: `receipt-reversal:${result.reversalId}`,
+        eventKey: `receipt-reversal:${receiptId}`,
       });
     });
     return NextResponse.json(result);
