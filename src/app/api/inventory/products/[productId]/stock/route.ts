@@ -1,6 +1,6 @@
 import { after, NextResponse } from "next/server";
 import { addInventory, adjustInventory } from "@/modules/inventory/application/inventory-service";
-import { sendStockAlertForMovement } from "@/modules/operating-view/application/operational-email";
+import { sendStockAlertsForUserSource } from "@/modules/operating-view/application/operational-email";
 import { authenticatedUserId, inventoryHttpError } from "@/modules/inventory/presentation/http";
 
 type Context = { params: Promise<{ productId: string }> };
@@ -12,8 +12,14 @@ export async function POST(request: Request, { params }: Context) {
     const productId = (await params).productId;
     if (body.action === "adjust") {
       const result = await adjustInventory(userId, productId, body);
-      after(async () => {
-        await sendStockAlertForMovement(userId, result.movementId);
+      const sourceId = typeof body.idempotencyKey === "string" ? body.idempotencyKey : "";
+      if (sourceId) after(async () => {
+        await sendStockAlertsForUserSource({
+          userId,
+          sourceType: "ADJUST_INVENTORY",
+          sourceId,
+          eventKey: `adjust:${sourceId}`,
+        });
       });
       return NextResponse.json(result, { status: 201 });
     }
