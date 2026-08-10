@@ -13,8 +13,6 @@ jobs:
     env:
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/tindahan_test
       DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/tindahan_test
-      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/tindahan_test
-      TEST_DIRECT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/tindahan_test
       NEXTAUTH_SECRET: ci-only-secret-with-at-least-thirty-two-characters
       NEXTAUTH_URL: http://localhost:3000
       APP_URL: http://localhost:3000
@@ -35,5 +33,5 @@ jobs:
       - run: pnpm db:generate
       - run: pnpm lint
       - run: pnpm typecheck
-      - run: pnpm test -- src/modules/operating-view/application/operational-email.test.ts src/modules/saas/application/operational-email-template.test.ts src/modules/receipts/application/receipt-object-event.test.ts
+      - run: pnpm exec vitest run src/modules/operating-view/application/operational-email.test.ts src/modules/saas/application/operational-email-template.test.ts src/modules/receipts/application/receipt-object-event.test.ts
       - run: pnpm build
