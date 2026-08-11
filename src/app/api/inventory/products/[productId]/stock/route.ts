@@ -1,5 +1,31 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { addInventory, adjustInventory } from "@/modules/inventory/application/inventory-service";
+import { sendStockAlertsForUserSource } from "@/modules/operating-view/application/operational-email";
 import { authenticatedUserId, inventoryHttpError } from "@/modules/inventory/presentation/http";
+
 type Context = { params: Promise<{ productId: string }> };
-export async function POST(request: Request, { params }: Context) { try { const body = await request.json(); const result = body.action === "adjust" ? await adjustInventory(await authenticatedUserId(), (await params).productId, body) : await addInventory(await authenticatedUserId(), (await params).productId, body); return NextResponse.json(result, { status: 201 }); } catch (error) { return inventoryHttpError(error); } }
+
+export async function POST(request: Request, { params }: Context) {
+  try {
+    const body = await request.json();
+    const userId = await authenticatedUserId();
+    const productId = (await params).productId;
+    if (body.action === "adjust") {
+      const result = await adjustInventory(userId, productId, body);
+      const sourceId = typeof body.idempotencyKey === "string" ? body.idempotencyKey : "";
+      if (sourceId) after(async () => {
+        await sendStockAlertsForUserSource({
+          userId,
+          sourceType: "ADJUST_INVENTORY",
+          sourceId,
+          eventKey: `adjust:${sourceId}`,
+        });
+      });
+      return NextResponse.json(result, { status: 201 });
+    }
+    const result = await addInventory(userId, productId, body);
+    return NextResponse.json(result, { status: 201 });
+  } catch (error) {
+    return inventoryHttpError(error);
+  }
+}

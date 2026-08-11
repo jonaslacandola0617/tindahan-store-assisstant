@@ -49,4 +49,17 @@ describe("receipt S3 object events", () => {
     await expect(processReceiptObjectEvent({ bucket: "private-bucket", encodedObjectKey: key }, dependencies({ processJob: vi.fn(async () => ({ skipped: false, status: "FAILED" as const })) }))).resolves.toMatchObject({ status: "ALREADY_FAILED" });
     await expect(processReceiptObjectEvent({ bucket: "private-bucket", encodedObjectKey: key }, dependencies({ processJob: vi.fn(async () => { throw new Error("provider detail must not escape"); }) }))).rejects.toMatchObject({ code: "RECEIPT_EVENT_PROCESSING_FAILED", message: "RECEIPT_EVENT_PROCESSING_FAILED", retryable: true });
   });
+
+  it("notifies receipt-ready and final-failure states without changing the worker outcome", async () => {
+    const readyNotify = vi.fn(async () => ({ sent: 1 }));
+    await expect(processReceiptObjectEvent({ bucket: "private-bucket", encodedObjectKey: key }, dependencies({ notifyStatus: readyNotify }))).resolves.toMatchObject({ status: "PROCESSED" });
+    expect(readyNotify).toHaveBeenCalledWith("receipt-1", "REVIEW_READY");
+
+    const failedNotify = vi.fn(async () => ({ sent: 1 }));
+    await expect(processReceiptObjectEvent({ bucket: "private-bucket", encodedObjectKey: key }, dependencies({ processJob: vi.fn(async () => ({ skipped: false, status: "FAILED" as const })), notifyStatus: failedNotify }))).resolves.toMatchObject({ status: "ALREADY_FAILED" });
+    expect(failedNotify).toHaveBeenCalledWith("receipt-1", "FAILED");
+
+    const brokenNotify = vi.fn(async () => { throw new Error("email provider down"); });
+    await expect(processReceiptObjectEvent({ bucket: "private-bucket", encodedObjectKey: key }, dependencies({ notifyStatus: brokenNotify }))).resolves.toMatchObject({ status: "PROCESSED" });
+  });
 });
