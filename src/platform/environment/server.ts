@@ -19,6 +19,7 @@ const schema = z.object({
   AUTH_DEMO_MODE: z.enum(["true", "false"]).default("false"),
   DEMO_EMAIL: z.string().email().default("rosa@tindahan.local"),
   DEMO_PASSWORD: z.string().min(8).default("tindahan123"),
+  SHOWCASE_MODE: z.enum(["true", "false"]).default("false"),
   APP_URL: optionalUrl,
   BILLING_PROVIDER: z.enum(["manual", "mock", "xendit"]).default("manual"),
   BILLING_STANDARD_MONTHLY_AMOUNT_PHP: z.coerce.number().int().positive().max(1_000_000).optional(),
@@ -57,7 +58,7 @@ const schema = z.object({
   AZURE_DOCUMENT_INTELLIGENCE_API_VERSION: optionalText,
 });
 
-export type ServerEnvironment = z.infer<typeof schema> & { demoMode: boolean };
+export type ServerEnvironment = z.infer<typeof schema> & { demoMode: boolean; showcaseMode: boolean };
 
 export function parseServerEnvironment(source: NodeJS.ProcessEnv): ServerEnvironment {
   const parsed = schema.parse(source);
@@ -68,6 +69,7 @@ export function parseServerEnvironment(source: NodeJS.ProcessEnv): ServerEnviron
     RECEIPT_OCR_API_VERSION: parsed.RECEIPT_OCR_API_VERSION ?? parsed.AZURE_DOCUMENT_INTELLIGENCE_API_VERSION ?? "2024-11-30",
   };
   const demoMode = value.AUTH_DEMO_MODE === "true";
+  const showcaseMode = value.SHOWCASE_MODE === "true";
   const lambdaRuntime = Boolean(value.AWS_LAMBDA_FUNCTION_NAME || value.AWS_EXECUTION_ENV?.startsWith("AWS_Lambda_"));
   // `next build` evaluates server modules while collecting route metadata. It
   // does not serve requests or access receipt infrastructure, so production
@@ -92,7 +94,7 @@ export function parseServerEnvironment(source: NodeJS.ProcessEnv): ServerEnviron
   if (productionRuntime && (!value.DATABASE_URL || (!lambdaRuntime && !value.NEXTAUTH_SECRET))) {
     throw new Error(lambdaRuntime ? "DATABASE_URL is required in the Lambda worker." : "DATABASE_URL and NEXTAUTH_SECRET are required in production.");
   }
-  if (productionRuntime && value.RECEIPT_STORAGE_PROVIDER === "local") {
+  if (productionRuntime && !showcaseMode && value.RECEIPT_STORAGE_PROVIDER === "local") {
     throw new Error("RECEIPT_STORAGE_PROVIDER must use private S3 storage in production.");
   }
   const hasAccessKey = Boolean(value.RECEIPT_S3_ACCESS_KEY_ID);
@@ -101,7 +103,7 @@ export function parseServerEnvironment(source: NodeJS.ProcessEnv): ServerEnviron
   if (value.RECEIPT_STORAGE_PROVIDER !== "local" && (!value.RECEIPT_S3_REGION || !value.RECEIPT_S3_BUCKET || (!lambdaRuntime && !hasAccessKey))) {
     throw new Error("S3 receipt storage configuration is incomplete.");
   }
-  if (productionRuntime && value.RECEIPT_OCR_PROVIDER === "mock") {
+  if (productionRuntime && !showcaseMode && value.RECEIPT_OCR_PROVIDER === "mock") {
     throw new Error("RECEIPT_OCR_PROVIDER must be configured for production.");
   }
   if (value.RECEIPT_OCR_PROVIDER === "http" && !value.RECEIPT_OCR_ENDPOINT) {
@@ -112,17 +114,17 @@ export function parseServerEnvironment(source: NodeJS.ProcessEnv): ServerEnviron
     if (new URL(value.RECEIPT_OCR_ENDPOINT).protocol !== "https:") throw new Error("Azure receipt OCR endpoint must use HTTPS.");
     if (value.RECEIPT_OCR_API_VERSION !== "2024-11-30") throw new Error("Unsupported Azure Document Intelligence API version.");
   }
-  if (productionRuntime && value.RECEIPT_OCR_PROVIDER !== "azure") {
+  if (productionRuntime && !showcaseMode && value.RECEIPT_OCR_PROVIDER !== "azure") {
     throw new Error("RECEIPT_OCR_PROVIDER must be azure in production.");
   }
   if (productionRuntime && value.RECEIPT_JOB_PROVIDER === "webhook" && (!value.RECEIPT_JOB_WAKE_URL || !value.RECEIPT_JOB_SECRET)) {
     throw new Error("Receipt job webhook configuration is incomplete.");
   }
-  if (productionRuntime && !lambdaRuntime && (value.BILLING_PROVIDER !== "xendit" || value.EMAIL_PROVIDER !== "resend")) {
+  if (productionRuntime && !showcaseMode && !lambdaRuntime && (value.BILLING_PROVIDER !== "xendit" || value.EMAIL_PROVIDER !== "resend")) {
     throw new Error("Production requires Xendit billing and Resend transactional email.");
   }
 
-  return { ...value, demoMode };
+  return { ...value, demoMode, showcaseMode };
 }
 
 export const serverEnvironment = parseServerEnvironment(process.env);
