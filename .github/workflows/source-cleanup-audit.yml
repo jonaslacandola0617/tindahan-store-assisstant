@@ -32,6 +32,13 @@ jobs:
             --exclude='pnpm-lock.yaml' || true
           echo '--- stale phase naming scan ---'
           grep -RInEi 'phase[[:space:]_-]*[0-9]+' src scripts design docs infra README.md CONTRIBUTING.md || true
+      - name: Verify candidate references
+        shell: bash
+        run: |
+          for term in registerUser registeredUserExists createStoreForOwner activeMembershipForStore canManageStore '/receipt-upload' 'seed-report-demo'; do
+            echo "--- $term ---"
+            grep -RInF "$term" src scripts design docs infra prisma README.md CONTRIBUTING.md package.json .env.example --exclude='pnpm-lock.yaml' || true
+          done
       - name: Find unused files and exports
         shell: bash
         run: |
