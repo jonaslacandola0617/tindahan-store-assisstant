@@ -104,7 +104,7 @@ illustration/mascot (explicitly prohibited by the brief).
 ### Skeleton — `.skeleton`, `.skeleton-line`, `.skeleton-title`
 **Purpose:** First-paint loading placeholder for any async content. Not
 actively triggered in this static prototype (data is inline), but the
-component is complete and ready for Codex's live data loads.
+component is complete and available for live data-loading states.
 
 ### Toast — `.toast`, `.toast-region`
 **Purpose:** Brief, non-blocking confirmation of a background action
