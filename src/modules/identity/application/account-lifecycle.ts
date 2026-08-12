@@ -3,10 +3,14 @@ import { z } from "zod";
 import { verifyPassword } from "@/modules/identity/domain/password";
 import { SaasError } from "@/modules/saas/application/errors";
 import { database } from "@/platform/persistence/prisma";
+import { serverEnvironment } from "@/platform/environment/server";
 
 const deactivateInput = z.object({ currentPassword: z.string().min(1).max(128) });
 
 export async function deactivateAccount(userId: string, raw: unknown) {
+  if (serverEnvironment.showcaseMode) {
+    throw new SaasError("SHOWCASE_PROTECTED", "Account deactivation is disabled in the public employer showcase.", 403);
+  }
   const value = deactivateInput.parse(raw);
   const user = await database().user.findUnique({
     where: { id: userId },
