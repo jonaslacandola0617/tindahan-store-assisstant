@@ -119,7 +119,7 @@ export class XenditBillingProvider implements BillingProvider {
   // Xendit implementation intentionally starts with a hosted SUBSCRIPTION
   // Payment Session. New Tindahan customers do not have a reusable payment
   // token yet, so direct recurring-plan creation is not the correct entry point.
-  async createRecurringPlan(input: RecurringPlanInput, _idempotencyKey: string) {
+  async createRecurringPlan(input: RecurringPlanInput) {
     const raw = await this.send("/sessions", {
       method: "POST",
       body: JSON.stringify({
