@@ -8,6 +8,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: { default: "Tindahan", template: "%s · Tindahan" },
   description: "A store operating assistant for small neighborhood stores.",
+  robots: { index: false, follow: false, nocache: true },
   icons: {
     icon: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><rect width=%2224%22 height=%2224%22 rx=%226%22 fill=%22%231B4D3E%22/><path d=%22M4.5 9 5.5 5h13l1 4%22 stroke=%22white%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22/><path d=%22M5.5 9v9.5h13V9%22 stroke=%22white%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>",
   },
