@@ -6,14 +6,15 @@ import { verifyPassword } from "@/modules/identity/domain/password";
 
 const databaseTests = process.env.TEST_DATABASE_URL || process.env.TEST_DATABASE ? describe : describe.skip;
 
-databaseTests("Phase 7 staff invitation integration", () => {
+databaseTests("staff invitation and account integration", () => {
   const suffix = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  const ownerEmail = `phase7-owner-${suffix}@example.test`;
-  const staffEmail = `phase7-staff-${suffix}@example.test`;
+  const ownerEmail = `saas-owner-${suffix}@example.test`;
+  const staffEmail = `saas-staff-${suffix}@example.test`;
+  const ownerPassword = "Tindahan-Owner-Test!";
   let ownerId = ""; let storeId = ""; let staffId = "";
   beforeAll(async () => {
-    const owner = await database().user.create({ data: { email: ownerEmail, name: "Phase Seven Owner", passwordHash: await hashPassword("Tindahan-Phase7!") } }); ownerId = owner.id;
-    const store = await database().store.create({ data: { name: "Phase Seven Store", memberships: { create: { userId: owner.id, role: "OWNER", status: "ACTIVE" } }, preference: { create: {} }, subscription: { create: { plan: "PILOT", status: "ACTIVE" } } } }); storeId = store.id;
+    const owner = await database().user.create({ data: { email: ownerEmail, name: "Store Owner", passwordHash: await hashPassword(ownerPassword) } }); ownerId = owner.id;
+    const store = await database().store.create({ data: { name: "SaaS Test Store", memberships: { create: { userId: owner.id, role: "OWNER", status: "ACTIVE" } }, preference: { create: {} }, subscription: { create: { plan: "PILOT", status: "ACTIVE" } } } }); storeId = store.id;
   });
   afterAll(async () => { if (storeId) { await database().emailDelivery.deleteMany({ where: { storeId } }); await database().auditEvent.deleteMany({ where: { storeId } }); await database().store.deleteMany({ where: { id: storeId } }); } if (staffId) await database().user.deleteMany({ where: { id: staffId } }); if (ownerId) await database().user.deleteMany({ where: { id: ownerId } }); });
 
@@ -24,8 +25,8 @@ databaseTests("Phase 7 staff invitation integration", () => {
     const stored = await database().staffInvitation.findUniqueOrThrow({ where: { id: invited.id } });
     expect(stored.tokenHash).not.toContain(token);
     expect(await database().emailDelivery.findFirst({ where: { invitationId: invited.id }, select: { status: true, provider: true } })).toEqual({ status: "SENT", provider: "mock" });
-    const accepted = await acceptStaffInvitation(null, { token, name: "Phase Seven Staff", password: "Tindahan-Staff-2026!" });
-    expect(accepted.storeName).toBe("Phase Seven Store");
+    const accepted = await acceptStaffInvitation(null, { token, name: "Store Staff", password: "Tindahan-Staff-2026!" });
+    expect(accepted.storeName).toBe("SaaS Test Store");
     const member = await database().storeMembership.findFirstOrThrow({ where: { storeId, user: { email: staffEmail } } }); staffId = member.userId;
     expect(member).toMatchObject({ role: "STAFF", status: "ACTIVE" });
     await expect(acceptStaffInvitation(null, { token, name: "Again", password: "Tindahan-Staff-2026!" })).rejects.toMatchObject({ code: "INVITE_INVALID" });
@@ -45,17 +46,17 @@ databaseTests("Phase 7 staff invitation integration", () => {
 
   it("changes a password only after current-password and confirmation checks", async () => {
     await expect(changePassword(ownerId, { currentPassword: "wrong", newPassword: "New-Tindahan-2026!", confirmPassword: "New-Tindahan-2026!" })).rejects.toMatchObject({ code: "CURRENT_PASSWORD" });
-    await expect(changePassword(ownerId, { currentPassword: "Tindahan-Phase7!", newPassword: "New-Tindahan-2026!", confirmPassword: "different" })).rejects.toBeDefined();
-    await expect(changePassword(ownerId, { currentPassword: "Tindahan-Phase7!", newPassword: "New-Tindahan-2026!", confirmPassword: "New-Tindahan-2026!" })).resolves.toEqual({ ok: true });
+    await expect(changePassword(ownerId, { currentPassword: ownerPassword, newPassword: "New-Tindahan-2026!", confirmPassword: "different" })).rejects.toBeDefined();
+    await expect(changePassword(ownerId, { currentPassword: ownerPassword, newPassword: "New-Tindahan-2026!", confirmPassword: "New-Tindahan-2026!" })).resolves.toEqual({ ok: true });
     const passwordHash = (await database().user.findUniqueOrThrow({ where: { id: ownerId }, select: { passwordHash: true } })).passwordHash!;
-    await expect(verifyPassword("Tindahan-Phase7!", passwordHash)).resolves.toBe(false);
+    await expect(verifyPassword(ownerPassword, passwordHash)).resolves.toBe(false);
     await expect(verifyPassword("New-Tindahan-2026!", passwordHash)).resolves.toBe(true);
   });
 
   it("keeps restricted stores readable while centrally rejecting business writes", async () => {
     await database().storeSubscription.update({ where: { storeId }, data: { status: "RESTRICTED" } });
     await expect(assertStoreMayWrite(storeId)).rejects.toMatchObject({ code: "PLAN_RESTRICTED", status: 403 });
-    expect(await database().store.findUnique({ where: { id: storeId }, select: { name: true } })).toEqual({ name: "Phase Seven Store" });
+    expect(await database().store.findUnique({ where: { id: storeId }, select: { name: true } })).toEqual({ name: "SaaS Test Store" });
     await database().storeSubscription.update({ where: { storeId }, data: { status: "ACTIVE" } });
   });
 });
