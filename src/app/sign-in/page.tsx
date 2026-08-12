@@ -6,6 +6,8 @@ import { LanguageToggle } from "@/components/language-toggle";
 import { accountAccessState } from "@/modules/identity/application/account-access";
 import { dictionary } from "@/modules/i18n/messages";
 import { authOptions } from "@/modules/identity/infrastructure/auth-options";
+import { serverEnvironment } from "@/platform/environment/server";
+import { employerShowcase } from "@/platform/showcase";
 import { SignInForm } from "./sign-in-form";
 
 export const metadata = { title: "Sign in" };
@@ -25,5 +27,8 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
   const requested = params.callbackUrl;
   const callbackUrl = requested?.startsWith("/invite/") ? requested : "/dashboard";
   const deactivated = params.deactivated === "1";
-  return <><a className="skip-link" href="#main">{locale === "FIL" ? "Lumaktaw papunta sa nilalaman" : "Skip to content"}</a><main className="standalone" id="main"><div className="standalone-panel"><AuthVisual locale={locale}/><div className="standalone-form"><div style={{ alignSelf: "flex-end", marginBottom: "var(--space-6)" }}><LanguageToggle locale={locale}/></div><h1 style={{ marginBottom: "var(--space-2)" }}>{copy.welcome}</h1><p className="text-muted" style={{ marginBottom: "var(--space-6)" }}>{copy.signInHelp}</p>{deactivated && <p className="form-alert" role="status" style={{ marginBottom: "var(--space-4)" }}>{locale === "FIL" ? "Na-deactivate na ang account at naka-sign out ka na." : "Your account has been deactivated and you’ve been signed out."}</p>}<SignInForm copy={copy} locale={locale} callbackUrl={callbackUrl}/></div></div></main><div className="toast-region" role="status" aria-live="polite"/></>;
+  const showcase = serverEnvironment.showcaseMode
+    ? { email: employerShowcase.email, password: employerShowcase.password }
+    : undefined;
+  return <><a className="skip-link" href="#main">{locale === "FIL" ? "Lumaktaw papunta sa nilalaman" : "Skip to content"}</a><main className="standalone" id="main"><div className="standalone-panel"><AuthVisual locale={locale}/><div className="standalone-form"><div style={{ alignSelf: "flex-end", marginBottom: "var(--space-6)" }}><LanguageToggle locale={locale}/></div><h1 style={{ marginBottom: "var(--space-2)" }}>{copy.welcome}</h1><p className="text-muted" style={{ marginBottom: "var(--space-6)" }}>{showcase ? (locale === "FIL" ? "Public employer demo ito na may sample store data." : "This is a public employer demo with sample store data.") : copy.signInHelp}</p>{deactivated && <p className="form-alert" role="status" style={{ marginBottom: "var(--space-4)" }}>{locale === "FIL" ? "Na-deactivate na ang account at naka-sign out ka na." : "Your account has been deactivated and you’ve been signed out."}</p>}<SignInForm copy={copy} locale={locale} callbackUrl={callbackUrl} showcase={showcase}/></div></div></main><div className="toast-region" role="status" aria-live="polite"/></>;
 }
