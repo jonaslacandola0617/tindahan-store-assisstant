@@ -35,7 +35,7 @@ if (target === "test") {
   if (!process.env.TEST_DIRECT_DATABASE_URL && url.hostname.includes("-pooler.")) {
     url.hostname = url.hostname.replace("-pooler.", ".");
   }
-  url.searchParams.set("schema", "tindahan_phase3_test");
+  url.searchParams.set("schema", "tindahan_integration_test");
   connectionUrl = url.toString();
 }
 

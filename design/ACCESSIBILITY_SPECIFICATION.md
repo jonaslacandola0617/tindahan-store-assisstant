@@ -1,8 +1,8 @@
 # Tindahan — Accessibility Specification
 
 Written for tired, distracted, older, and low-literacy users, per the PRD.
-This document covers what's implemented, how it was verified, and what
-remains for Codex to finish in a production build.
+This document covers what's implemented, how it was verified, and the
+production accessibility requirements that must remain intact.
 
 ---
 
@@ -105,7 +105,7 @@ the component CSS rather than left to chance:
   field (`.field-error`) — never a color-only red border, never a toast,
   never a generic "Form invalid" summary at the top of a long form.
 
-## 8. Screen-reader-specific notes for Codex
+## 8. Screen-reader-specific implementation notes
 
 - The icon sprite is inlined per-page and every `<symbol>` is inside a
   `display:none` parent `<svg>` — decorative and correctly invisible to

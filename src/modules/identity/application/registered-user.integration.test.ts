@@ -3,7 +3,7 @@ import { database } from "@/platform/persistence/prisma";
 import { registeredUserExists } from "./registered-user";
 
 describe("registeredUserExists", () => {
-  const email = `phase8-session-${crypto.randomUUID()}@example.test`;
+  const email = `session-user-${crypto.randomUUID()}@example.test`;
   let userId = "";
 
   beforeAll(async () => {

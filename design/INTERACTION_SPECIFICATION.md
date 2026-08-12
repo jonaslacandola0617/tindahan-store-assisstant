@@ -109,8 +109,8 @@ walkthrough. Source: `initReceiptReview()` in `interactions.js`.
 **Simplification vs. production:** "Add as new product" and "Choose a
 product" do not open a real product-creation/search flow in this static
 prototype — they resolve the line visually to demonstrate the state
-machine. Codex must wire these to the real Add Product form and product
-search respectively.
+machine. The live application connects these actions to the Add Product
+flow and product search respectively.
 
 ## 7. Inventory adjustment interaction
 

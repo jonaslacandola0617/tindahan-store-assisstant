@@ -10,7 +10,7 @@ const testDatabaseUrl = process.env.TEST_DATABASE_URL ?? process.env.TEST_DATABA
 
 if (testDatabaseUrl) {
   const isolatedUrl = new URL(testDatabaseUrl);
-  isolatedUrl.searchParams.set("schema", "tindahan_phase3_test");
+  isolatedUrl.searchParams.set("schema", "tindahan_integration_test");
   process.env.DATABASE_URL = isolatedUrl.toString();
   process.env.DIRECT_URL = isolatedUrl.toString();
 }

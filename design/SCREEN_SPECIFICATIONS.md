@@ -194,8 +194,8 @@ behavior, and the states implemented in the prototype.
   inventory change.
 - **Responsive:** 2×2 → single column ≤1180px.
 - **States:** Time-range segmented control (This week / This month) is
-  visual in this prototype; wiring real data swap is a Codex task (see
-  `CODEX_HANDOFF.md`).
+  visual in this prototype; the live application connects the control to
+  the corresponding report range.
 
 ## notifications.html — Notifications
 

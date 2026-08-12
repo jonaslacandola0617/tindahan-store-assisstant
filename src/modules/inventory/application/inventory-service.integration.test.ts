@@ -10,9 +10,9 @@ databaseTests("inventory PostgreSQL integration", () => {
   beforeAll(async () => {
     const db=database();
     const [owner,staff,outsider]=await Promise.all([
-      db.user.create({data:{email:`phase2-owner-${suffix}@example.test`}}),db.user.create({data:{email:`phase2-staff-${suffix}@example.test`}}),db.user.create({data:{email:`phase2-other-${suffix}@example.test`}})
+      db.user.create({data:{email:`inventory-owner-${suffix}@example.test`}}),db.user.create({data:{email:`inventory-staff-${suffix}@example.test`}}),db.user.create({data:{email:`inventory-other-${suffix}@example.test`}})
     ]);ownerId=owner.id;staffId=staff.id;outsiderId=outsider.id;
-    const store=await db.store.create({data:{name:`Phase 2 ${suffix}`,preference:{create:{}},memberships:{create:[{userId:ownerId,role:"OWNER"},{userId:staffId,role:"STAFF"}]}}});storeId=store.id;
+    const store=await db.store.create({data:{name:`Inventory Test ${suffix}`,preference:{create:{}},memberships:{create:[{userId:ownerId,role:"OWNER"},{userId:staffId,role:"STAFF"}]}}});storeId=store.id;
     const other=await db.store.create({data:{name:`Other ${suffix}`,preference:{create:{}},memberships:{create:{userId:outsiderId,role:"OWNER"}}}});otherStoreId=other.id;
   });
   afterAll(async()=>{const db=database();for(const id of [storeId,otherStoreId]){if(!id)continue;await db.auditEvent.deleteMany({where:{storeId:id}});await db.idempotencyKey.deleteMany({where:{storeId:id}});await db.barcodeLabel.deleteMany({where:{storeId:id}});await db.productBarcode.deleteMany({where:{storeId:id}});await db.inventoryMovement.deleteMany({where:{storeId:id}});await db.inventoryBalance.deleteMany({where:{storeId:id}});await db.productSupplierReference.deleteMany({where:{storeId:id}});await db.product.deleteMany({where:{storeId:id}});await db.category.deleteMany({where:{storeId:id}});await db.supplier.deleteMany({where:{storeId:id}});await db.storeMembership.deleteMany({where:{storeId:id}});await db.storePreference.deleteMany({where:{storeId:id}});await db.store.deleteMany({where:{id}})}await db.user.deleteMany({where:{id:{in:[ownerId,staffId,outsiderId]}}})});
