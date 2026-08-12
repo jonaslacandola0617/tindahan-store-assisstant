@@ -13,13 +13,13 @@ databaseTests("receipt PostgreSQL integration", () => {
   beforeAll(async () => {
     const db = database();
     const [owner, staff, outsider] = await Promise.all([
-      db.user.create({ data: { email: `phase4-owner-${suffix}@example.test` } }),
-      db.user.create({ data: { email: `phase4-staff-${suffix}@example.test` } }),
-      db.user.create({ data: { email: `phase4-other-${suffix}@example.test` } }),
+      db.user.create({ data: { email: `receipt-owner-${suffix}@example.test` } }),
+      db.user.create({ data: { email: `receipt-staff-${suffix}@example.test` } }),
+      db.user.create({ data: { email: `receipt-other-${suffix}@example.test` } }),
     ]);
     ownerId = owner.id; staffId = staff.id; outsiderId = outsider.id;
-    const store = await db.store.create({ data: { name: `Phase 4 ${suffix}`, preference: { create: {} }, memberships: { create: [{ userId: ownerId, role: "OWNER" }, { userId: staffId, role: "STAFF" }] } } });
-    const other = await db.store.create({ data: { name: `Other Phase 4 ${suffix}`, preference: { create: {} }, memberships: { create: { userId: outsiderId, role: "OWNER" } } } });
+    const store = await db.store.create({ data: { name: `Receipt Test ${suffix}`, preference: { create: {} }, memberships: { create: [{ userId: ownerId, role: "OWNER" }, { userId: staffId, role: "STAFF" }] } } });
+    const other = await db.store.create({ data: { name: `Other Receipt Test ${suffix}`, preference: { create: {} }, memberships: { create: { userId: outsiderId, role: "OWNER" } } } });
     storeId = store.id; otherStoreId = other.id;
     const product = await db.product.create({ data: { storeId, name: "Bear Brand 33g", normalizedName: "bear brand 33g", sellingUnit: "PACK", sellingPrice: 18, lowStockThreshold: 2, balance: { create: { storeId, quantity: 4 } } } });
     productId = product.id;
@@ -120,7 +120,7 @@ databaseTests("receipt PostgreSQL integration", () => {
   it("runs a private direct upload through the durable mock extraction job", async () => {
     const movementCountBefore = await database().inventoryMovement.count({ where: { storeId } });
     const bytes = pngFixture(640, 960);
-    const initialized = await initializeReceiptUpload(ownerId, "http://localhost:3000", { filename: "phase4-receipt.png", mimeType: "image/png", sizeBytes: bytes.byteLength, idempotencyKey: `upload-${suffix}` });
+    const initialized = await initializeReceiptUpload(ownerId, "http://localhost:3000", { filename: "receipt-test.png", mimeType: "image/png", sizeBytes: bytes.byteLength, idempotencyKey: `upload-${suffix}` });
     const token = new URL(initialized.upload.url).pathname.split("/").pop()!;
     uploadedObjectKey = (await database().receiptFile.findUniqueOrThrow({ where: { receiptId: initialized.receiptId } })).objectKey;
     await storeLocalReceiptUpload(token, bytes, "image/png");
